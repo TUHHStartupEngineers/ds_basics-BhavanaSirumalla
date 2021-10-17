@@ -1,0 +1,25 @@
+name: "MyLabJournal"
+output:
+  html_document:
+    css: style.css
+navbar:
+  title: "MyLabJournal"
+  left:
+    - text: "Index"
+      href: index.html
+    - text: "Journal"
+      menu:
+            - text: "01 Tidyverse"
+              href: 01_tidyverse.html
+            - text: "02 Data Acquisition"
+              href: 02_data_acquisition.html
+            - text: "03 Data Wrangling"
+              href: 03_data_wrangling.html
+            - text: "04 Data Visualization"
+              href: 04_data_visualization.html
+    - text: "Class notes"
+      href: 05_class_notes.html
+    - text: "Links"
+      href: 06_links.html
+output_dir: "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+exclude: ["docks.jpg", "journal_encrypted.html"]
