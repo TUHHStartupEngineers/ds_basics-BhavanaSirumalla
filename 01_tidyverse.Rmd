@@ -17,7 +17,7 @@ output:
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 ```
 
-# Introduction to Tidyverse- Challenge
+# Introduction to Tidyverse - Challenge
 
 Last compiled: `r Sys.Date()`
 
