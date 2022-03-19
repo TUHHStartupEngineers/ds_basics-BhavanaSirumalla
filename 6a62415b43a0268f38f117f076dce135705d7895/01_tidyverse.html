@@ -9,12 +9,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Joschka Schwarz" />
+<meta name="author" content="Bhavana Sirumalla" />
 
 
 <title>01 Intro to the tidyverse</title>
 
-<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -64,6 +64,7 @@ if (window.hljs) {
 
 
 
+
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -88,6 +89,9 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
 }
 pre code {
   padding: 0;
@@ -316,7 +320,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -329,7 +333,7 @@ div.tocify {
   <a href="index.html">Index</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Journal
      
     <span class="caret"></span>
@@ -366,7 +370,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -376,40 +380,119 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">01 Intro to the tidyverse</h1>
-<h4 class="author">Joschka Schwarz</h4>
-<h4 class="date">2021-04</h4>
+<h4 class="author">Bhavana Sirumalla</h4>
+<h4 class="date">2022-03</h4>
 
 </div>
 
 
-<p><strong>IMPORTANT:</strong> You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing.</p>
-<p>This is an <code>.Rmd</code> file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a # in front of your text, it will create a top level-header.</p>
-<div id="my-first-post" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> My first post</h1>
-<p>Last compiled: 2022-03-09</p>
-<p>Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left.</p>
-<div id="second-level-header" class="section level2" number="1.1">
-<h2><span class="header-section-number">1.1</span> Second level header</h2>
-<p>You can add more headers by adding more hashtags. These won’t be put into the table of contents</p>
-<div id="third-level-header" class="section level3" number="1.1.1">
-<h3><span class="header-section-number">1.1.1</span> third level header</h3>
-<p>Here’s an even lower level header</p>
-</div>
-</div>
-</div>
-<div id="my-second-post-note-the-order" class="section level1" number="2">
-<h1><span class="header-section-number">2</span> My second post (note the order)</h1>
-<p>Last compiled: 2022-03-09</p>
-<p>I’m writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom</p>
-</div>
-<div id="adding-r-stuff" class="section level1" number="3">
-<h1><span class="header-section-number">3</span> Adding R stuff</h1>
-<p>So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place.</p>
-<p>So, let’s say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:</p>
-<pre class="r"><code>samples &lt;- rnorm(100, mean=0, sd=1)
-hist(samples)</code></pre>
+<div id="introduction-to-tidyverse--challenge" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Introduction to Tidyverse- Challenge</h1>
+<p>Last compiled: 2022-03-19</p>
+<pre class="r"><code># Data Science at TUHH ------------------------------------------------------
+# SALES ANALYSIS ----
+# 1.0 Load libraries ----
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(ggplot2)
+library(writexl)
+# 2.0 Importing Files ----
+bikes &lt;- read_excel(&quot;00_data/bikes.xlsx&quot;)
+orderLines &lt;- read_excel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/00_data/orderlines.xlsx&quot;)
+bikeshops &lt;- read_excel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/00_data/bikeshops.xlsx&quot;)
+# 3.0 Examining Data ----
+
+
+# 4.0 Joining Data ----
+bikeshop_orderlines_joined_tbl &lt;- orderLines %&gt;%
+  left_join(bikes,by=c(&quot;product.id&quot;=&quot;bike.id&quot;)) %&gt;%
+  left_join(bikeshops, by=c(&quot;customer.id&quot;=&quot;bikeshop.id&quot;))
+
+# 5.0 Wrangling Data ----
+bikeshop_orderlines_wrangled &lt;- bikeshop_orderlines_joined_tbl %&gt;% 
+  separate(col = location, into = c(&quot;City&quot;,&quot;State&quot;), sep = &quot;,&quot;) %&gt;%
+  mutate(total.price = price * quantity) %&gt;%
+  select(-...1, -gender) %&gt;%
+  select(-ends_with(&quot;.id&quot;)) %&gt;%
+  bind_cols(bikeshop_orderlines_joined_tbl %&gt;% select(order.id)) %&gt;%
+  select(order.id, contains(&quot;order&quot;), contains(&quot;model&quot;), State,
+         price, quantity, total.price,
+         everything()) %&gt;%
+  rename(bikeshop = name) %&gt;%
+  set_names(names(.) %&gt;% str_replace_all(&quot;\\.&quot;, &quot;_&quot;))
+
+
+# 6.0 Business Insights ----
+# 6.1 Sales by Year ----
+# 6.2 Sales by Year and Category 2 ----
+
+salesByState_summarized_data= bikeshop_orderlines_wrangled %&gt;%
+  select(State,total_price) %&gt;%
+  group_by(State)%&gt;% summarise(sales=sum(total_price)) %&gt;% mutate(sales_text = 
+                                                                 scales::dollar
+                                                               (sales, big.mark
+                                                                 = &quot;.&quot;,
+                                                                 decimal.mark = 
+                                                                   &quot;,&quot;,
+                                                                 prefix = &quot;&quot;, 
+                                                                 suffix = &quot; €&quot;))
+
+salesByState_summarized_data%&gt;%
+  ggplot(aes(x = State, y = sales)) +
+  geom_col(fill = &quot;#2DC6D6&quot;) +
+  geom_label(aes(label = sales_text),label.size = 0.01)+
+  geom_smooth(method = &quot;lm&quot;, se = FALSE) + 
+  scale_y_continuous(labels = scales::dollar_format(big.mark = &quot;.&quot;, 
+                                                    decimal.mark = &quot;,&quot;, 
+                                                    prefix = &quot;&quot;, 
+                                                    suffix = &quot; €&quot;)) +
+  labs(title    = &quot;Revenue by State&quot;, x = &quot;&quot;,
+       y = &quot;Revenue&quot;) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))</code></pre>
 <p><img src="01_tidyverse_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<p>When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You’ll learn that all of these things and more can be customized in each R code block.</p>
+<pre class="r"><code># Step 1 - Manipulate
+sales_year_state &lt;-  bikeshop_orderlines_wrangled %&gt;% 
+  select(order_date,State,total_price) %&gt;% mutate(yr=year(order_date)) %&gt;% 
+  group_by(yr,State) %&gt;% summarise(sales= sum(total_price)) %&gt;% mutate(
+    sales_text = scales::dollar(sales, big.mark= &quot;.&quot;,decimal.mark = &quot;,&quot;,
+                                prefix = &quot;&quot;, suffix = &quot; €&quot;))
+
+
+# Step 2 - Visualize
+sales_year_state %&gt;%
+  
+  # Set up x, y, fill
+  ggplot(aes(x = yr, y = sales, fill = State)) +
+  
+  # Geometries
+  geom_col() + # Run up to here to get a stacked bar plot
+  
+  # Facet
+  facet_wrap(~ State) +
+  
+  # Formatting
+  scale_y_continuous(labels = scales::dollar_format(big.mark = &quot;.&quot;, 
+                                                    decimal.mark = &quot;,&quot;, 
+                                                    prefix = &quot;&quot;, 
+                                                    suffix = &quot; €&quot;)) +
+  labs(
+    title = &quot;Revenue by year and State&quot;,
+    fill = &quot;Main category&quot; # Changes the legend name
+  ) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1,size = 7))</code></pre>
+<p><img src="01_tidyverse_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre class="r"><code># 7.0 Writing Files ----
+
+# 7.1 Excel ----
+install.packages(&quot;writexl&quot;)
+library(&quot;writexl&quot;)
+
+bikeshop_orderlines_wrangled %&gt;% write_xlsx(&quot;00_data/bike_orderlines.xlsx&quot;)
+# 7.2 CSV ----
+bikeshop_orderlines_wrangled %&gt;% write_csv(&quot;00_data/bike_orderlines.csv&quot;)
+# 7.3 RDS ----
+bikeshop_orderlines_wrangled %&gt;% write_rds(&quot;00_data/bike_orderlines.rds&quot;)</code></pre>
 </div>
 
 
