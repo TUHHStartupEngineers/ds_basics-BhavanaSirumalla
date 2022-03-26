@@ -339,16 +339,19 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="01_tidyverse.html">01 Tidyverse</a>
+      <a href="01_tidyverse.html">Tidyverse</a>
     </li>
     <li>
-      <a href="02_data_acquisition.html">02 Data Acquisition</a>
+      <a href="02_data_acquisition.html">Data Acquisition</a>
     </li>
     <li>
       <a href="03_data_wrangling.html">03 Data Wrangling</a>
     </li>
     <li>
-      <a href="04_data_visualization.html">04 Data Visualization</a>
+      <a href="04_data_visualization.html">Data Visualization</a>
+    </li>
+    <li>
+      <a href="Machine_Learning.html">Machine_Learning</a>
     </li>
   </ul>
 </li>
@@ -379,39 +382,191 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">02 Data Acqusition</h1>
-<h4 class="date">2021-04</h4>
+<h4 class="date">2022-03</h4>
 
 </div>
 
 
-<p><strong>IMPORTANT:</strong> You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing.</p>
-<p>This is an <code>.Rmd</code> file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a # in front of your text, it will create a top level-header.</p>
-<div id="my-first-post" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> My first post</h1>
-<p>Last compiled: 2022-03-19</p>
-<p>Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left.</p>
-<div id="second-level-header" class="section level2" number="1.1">
-<h2><span class="header-section-number">1.1</span> Second level header</h2>
-<p>You can add more headers by adding more hashtags. These won’t be put into the table of contents</p>
-<div id="third-level-header" class="section level3" number="1.1.1">
-<h3><span class="header-section-number">1.1.1</span> third level header</h3>
-<p>Here’s an even lower level header</p>
+<div id="data-acquisition" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Data Acquisition</h1>
+<div id="challenge-1--get-data-with-api" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> Challenge 1- Get data with API</h2>
+<pre class="r"><code>#Load libraries
+library(httr)
+library(tidyverse)
+#getting data from spotify 
+clientID = &#39;caba8ed3155444e9aea7331dcd43bd69&#39;
+secret = &#39;269afd3f95e54e2cad66234672000e47&#39;
+response = POST(&#39;https://accounts.spotify.com/api/token&#39;,
+  accept_json(),
+  authenticate(clientID, secret),
+  body = list(grant_type = &#39;client_credentials&#39;),
+  encode = &#39;form&#39;,
+  verbose()
+)</code></pre>
+<pre class="r"><code>mytoken = content(response)$access_token
+HeaderValue = paste0(&#39;Bearer &#39;, mytoken)
+albumID = &quot;1NAmidJlEaVgA3MpcPFYGq&quot;
+track_URI = paste0(&#39;https://api.spotify.com/v1/albums/&#39;, albumID,&#39;/tracks&#39;)
+track_response = GET(url = track_URI, add_headers(Authorization = HeaderValue))
+tracks = content(track_response)
+
+ntracks = length(tracks$items)
+tracks_list&lt;-data.frame(
+  name=character(ntracks),
+  id=character(ntracks),
+  artist=character(ntracks),
+  disc_number=numeric(ntracks),
+  track_number=numeric(ntracks),
+  duration_ms=numeric(ntracks),
+  stringsAsFactors=FALSE
+)
+
+for(i in 1:ntracks){
+  tracks_list[i,]$id &lt;- tracks$items[[i]]$id
+  tracks_list[i,]$name &lt;- tracks$items[[i]]$name
+  tracks_list[i,]$artist &lt;- tracks$items[[i]]$artists[[1]]$name
+  tracks_list[i,]$disc_number &lt;- tracks$items[[i]]$disc_number
+  tracks_list[i,]$track_number &lt;- tracks$items[[i]]$track_number
+  tracks_list[i,]$duration_ms &lt;- tracks$items[[i]]$duration_ms
+}
+tracks_list_tbl&lt;-tracks_list
+tracks_list_tbl %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 18
+## Columns: 6
+## $ name         &lt;chr&gt; &quot;I Forgot That You Existed&quot;, &quot;Cruel Summer&quot;, &quot;Lover&quot;, &quot;Th~
+## $ id           &lt;chr&gt; &quot;43rA71bccXFGD4C8GOpIlN&quot;, &quot;1BxfuPKGuaTgP7aM0Bbdwr&quot;, &quot;1dGr~
+## $ artist       &lt;chr&gt; &quot;Taylor Swift&quot;, &quot;Taylor Swift&quot;, &quot;Taylor Swift&quot;, &quot;Taylor S~
+## $ disc_number  &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+## $ track_number &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17~
+## $ duration_ms  &lt;dbl&gt; 170640, 178426, 221306, 190360, 211240, 173386, 234146, 2~</code></pre>
+</div>
+<div id="challenge-2--web-scraping" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Challenge 2- Web Scraping</h2>
+<pre class="r"><code>library(rvest)
+library(stringi)
+library(xopen)
+library(jsonlite)
+library(tidyverse)
+library(glue)
+
+url &lt;- &quot;https://www.radon-bikes.de&quot;
+#xopen(url)
+html_home &lt;- read_html(url)
+
+#Get url for each of the product categories
+bike_category_url_tbl &lt;- html_home %&gt;% html_nodes(&quot;.megamenu__item&quot;) %&gt;% html_elements(&quot;a&quot;) %&gt;% 
+  html_attr(&#39;href&#39;) %&gt;% enframe(name = &#39;position&#39;,value = &#39;title&#39;) %&gt;% mutate(
+    category_url=glue(&quot;https://www.radon-bikes.de{title}&quot;)
+  ) %&gt;% filter(position&lt;9)
+
+#Get the Model Names
+get_bike_data &lt;- function(link){
+  model_infor &lt;- read_html(link) %&gt;% html_nodes(&quot;.o-slick-slider__slide-content&quot;) %&gt;%
+  html_element(&quot;h2&quot;) %&gt;% html_text() %&gt;% enframe(name = &quot;position&quot;,value = &#39;model&#39;)
+  
+  #Get the sizes
+  bike_sizes &lt;- read_html(link) %&gt;% html_nodes(&quot;.o-slick-slider__slide-content&quot;)%&gt;%  
+  html_node(&#39;.m-bikegrid__size&#39;) %&gt;% html_text() %&gt;% str_extract(&quot;[0-9].+&quot;)%&gt;% 
+ enframe(name = &quot;position&quot;,value = &quot;size&quot;)
+  
+#Get the prices
+  bike_prices &lt;- read_html(link) %&gt;% html_nodes(&quot;.m-serienpanel__price--active&quot;) %&gt;% html_text() %&gt;% 
+    str_remove(&quot;^ .$&quot;) %&gt;%  stri_remove_empty() %&gt;%  enframe(name=&#39;position&#39;,value = &#39;price&#39;)
+  
+#combine three using position
+   model_infor %&gt;% left_join(bike_sizes) %&gt;% left_join(bike_prices) %&gt;%
+    filter(position!=23)
+}
+
+# Get the URl for 1st category
+category_1 &lt;-  bike_category_url_tbl$category_url[2] 
+bike_model&lt;- get_bike_data(link = category_1)
+
+bike_category_url_data &lt;- bike_category_url_tbl %&gt;% pull(category_url) 
+
+bike_data_list &lt;- map(bike_category_url_data,get_bike_data) 
+
+bike_data_tbl &lt;- bind_rows(bike_data_list) 
+
+#removing &quot;Euro&quot; symbol from price
+bike_data_tbl$price&lt;-gsub(&quot;€&quot;,&quot;&quot;,as.character(bike_data_tbl$price))%&gt;% na.exclude()
+bike_data_tbl  %&gt;% head(n=10)# display 10 rows</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["model"],"name":[2],"type":["chr"],"align":["left"]},{"label":["size"],"name":[3],"type":["chr"],"align":["left"]},{"label":["price"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"JEALOUS 8.0","3":"29\"","4":"2599"},{"1":"2","2":"JEALOUS 9.0","3":"29\"","4":"2999"},{"1":"3","2":"JEALOUS 10.0","3":"29\"","4":"4199"},{"1":"4","2":"JEALOUS 10.0 EA","3":"29\"","4":"5499"},{"1":"5","2":"JEALOUS AL 8.0","3":"29\"","4":"1099"},{"1":"6","2":"JEALOUS AL 8.0 HD","3":"29\"","4":"1499"},{"1":"7","2":"JEALOUS AL 9.0","3":"29\"","4":"1649"},{"1":"8","2":"JEALOUS AL 9.0 MS","3":"29\"","4":"1649"},{"1":"9","2":"JEALOUS AL 10.0","3":"29\"","4":"1849"},{"1":"10","2":"JEALOUS AL 10.0 SL","3":"29\"","4":"2199"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
 </div>
 </div>
+<div id="business-case" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> Business case</h2>
+<pre class="r"><code># WEBSCRAPING ----
+
+# 1.0 LIBRARIES ----
+
+library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
+library(rvest)     # HTML Hacking &amp; Web Scraping
+library(xopen)     # Quickly opening URLs
+library(jsonlite)  # converts JSON files to R objects
+library(glue)      # concatenate strings
+library(stringi)   # character string/text processing
+
+url_home          &lt;- &quot;https://www.canyon.com/en-de&quot;
+html_home         &lt;- read_html(url_home)
+
+# 01. Get bike categories ----
+bike_category_tbl &lt;- html_home %&gt;%
+  
+  # Get the nodes for the families ...
+  html_nodes(css = &quot;.is-bikeCategory .js-menuItemThirdLevel&quot;) |&gt; 
+  html_attr(&quot;href&quot;) |&gt; 
+  as_tibble() |&gt; 
+  rename(&quot;url&quot; = value) |&gt; 
+  mutate(url = str_c(&quot;https://www.canyon.com&quot;, url))
+
+
+# 02a. Get bike urls (single category)
+bike_category_url &lt;- bike_category_tbl$url[2]
+
+html_bike_category  &lt;- read_html(bike_category_url)
+bike_url_tbl        &lt;- html_bike_category %&gt;%
+  
+  # Get the &#39;a&#39; nodes, which are hierarchally underneath 
+  # the class productTile__contentWrapper
+  html_nodes(css = &quot;.productTile__contentWrapper &gt; a&quot;) %&gt;%
+  html_attr(&quot;href&quot;) %&gt;%
+  
+  # Remove the query parameters of the URL (everything after the &#39;?&#39;)
+  str_remove(pattern = &quot;\\?.*&quot;) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;url&quot;)
+
+bike_category_tbl </code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["url"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/"},{"1":"https://www.canyon.com/en-de/road-bikes/triathlon-bikes/speedmax/"},{"1":"https://www.canyon.com/en-de/road-bikes/endurance-bikes/endurace/"},{"1":"https://www.canyon.com/en-de/road-bikes/race-bikes/ultimate/"},{"1":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/"},{"1":"https://www.canyon.com/en-de/road-bikes/cyclocross-bikes/inflite/"},{"1":"https://www.canyon.com/en-de/road-bikes/triathlon-bikes/speedmax/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/all-road/grail/"},{"1":"https://www.canyon.com/en-de/road-bikes/endurance-bikes/endurace/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/bike-packing/grizl/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/bike-packing/grizl/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/all-road/grail/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/all-road/grail/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/enduro-bikes/strive/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/enduro-bikes/torque/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/grand-canyon/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/neuron/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/stoic/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral-125/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/grandcanyon-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/neuron-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/spectral-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/torque-on/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/cross-country-bikes/exceed/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/grand-canyon/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/cross-country-bikes/lux/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/downhill-bikes/sender/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/enduro-bikes/torque/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/dirt-jump-bikes/stitched/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/fat-bikes/dude/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/youth-kids/grand-canyon-young-hero/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/youth-kids/neuron-young-hero/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/youth-kids/spectral-young-hero/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-road-bikes/endurace-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/roadlite-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-gravel-bikes/grail-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/grandcanyon-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/neuron-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/spectral-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/torque-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/roadlite-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/commuter-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/precede-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-touring-bikes/pathlite-on/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/city-bikes/roadlite/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/commuter-bikes/commuter/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/precede-on/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/commuter-bikes/commuter/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/precede-on/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/touring-bikes/pathlite/"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
 </div>
-<div id="my-second-post-note-the-order" class="section level1" number="2">
-<h1><span class="header-section-number">2</span> My second post (note the order)</h1>
-<p>Last compiled: 2022-03-19</p>
-<p>I’m writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom</p>
+<pre class="r"><code># 02b. Get bike description (single category)
+bike_desc_tbl &lt;- html_bike_category %&gt;%
+  
+  # Get the nodes in the meta tag where the attribute itemprop equals description
+  html_nodes(&#39;.productTile__productSummaryLeft &gt; meta[itemprop=&quot;description&quot;]&#39;) %&gt;%
+  
+  # Extract the content of the attribute content
+  html_attr(&quot;content&quot;) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;description&quot;)
+
+bike_desc_tbl</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["description"],"name":[2],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"Canyon - Exceptional ergonomics and rider-specific customisation come together with next-level aerodynamics to bring you world class-triathlon performance at an unbeatable value. Through thoughtful details like the top tube snake, bottom bracket toolkit and integrated bento box, the Speedmax CF 8 Disc comes out of the box ready for racing."},{"1":"2","2":"Canyon - Drawing on the world-level performance DNA of the flagship Speedmax CFR, the Speedmax CF 7 Disc offers superb speed and unprecedented adjustability to newcomers and experienced racers alike thanks to its clever, integrated solutions and one-of-a-kind frame."},{"1":"3","2":"Canyon - An excellent tri bike is aerodynamic, comfortable, adjustable and seamlessly integrates critical features into the frame. The Speedmax CF 7 Disc eTap is all of that and more. With head-turning Reynolds carbon wheels and hyper-precise SRAM electronic shifting, it was designed to perform at the highest level."},{"1":"4","2":"Canyon - You know every second of your bike split counts, and that an aerodynamic, efficient and ergonomic bike can make the difference in setting a new PB. By choosing the Speedmax CF 8 WMN Disc, you’re guaranteed the highest levels of tri performance a bike can offer so that you can focus on riding your best."},{"1":"5","2":"Canyon - Exceptional ergonomics and rider-specific customisation come together with next-level aerodynamics to bring you world class-triathlon performance at an unbeatable value. Through thoughtful details like the top tube snake, bottom bracket toolkit and integrated bento box, the Speedmax CF 8 Disc comes out of the box ready for racing."},{"1":"6","2":"Canyon - A high-performance, aerodynamic triathlon bike that can be perfectly adjusted to your riding style, the Speedmax CF 8 Disc Di2 incorporates accurate electronic shifting, a precise power meter and deep-section aero wheels into an award-winning frame – all at a stellar value."},{"1":"7","2":"Canyon - The Speedmax CF 8 WMN Disc Di2 pulls no punches as one of the quickest women’s-specific tri bikes on the market. The high-performance frameset comes fully-outfitted with reliable and wireless Shimano Ultegra Di2 shifting and world-class aero wheels at a truly competitive price."},{"1":"8","2":"Canyon - Ridden by the likes of World Champions Jan Frodeno and Patrick Lange, the Speedmax CF SLX held the title ‘King of Kona’ for five straight years and the bike has only gotten better. The updated frame sets the standard in adjustability, integration, aerodynamics and handling so you can smash your personal bests."},{"1":"9","2":"Canyon - An excellent tri bike is aerodynamic, comfortable, adjustable and seamlessly integrates important features into the frame. The Speedmax CF 8 Disc eTap is all of that and more. With head-turning Zipp Firecrest wheels and hyper-precise SRAM electronic shifting, it was designed to perform at the highest level."},{"1":"10","2":"Canyon - A world class performance demands a world class bike. The all-new Speedmax CFR sets a new standard for what a triathlon bike can do by packing the highest levels of adjustability, aerodynamics, integration and comfort into a lightweight frame kitted with the best components available. The only thing left to do is qualify for Kona!"},{"1":"11","2":"Canyon - The most accomplished triathlon bike in the world just got even better. With greater adjustability, improved aerodynamics, refined storage options and unprecedented levels of innovative integration, the new Speedmax leaves no stone left unturned to deliver world class triathlon performance."},{"1":"12","2":"Canyon - How do you make the best triathlon bike? Using state-of-the art materials and born from years of feedback between the finest engineers and the world’s best triathletes, the Speedmax CFR sets a new benchmark for triathlon performance. Ride like Frodeno with Canyon Factory Racing."},{"1":"13","2":"Canyon - Fast, aerodynamic, lightweight and comfortable, our engineers designed the new Speedmax to meet the needs of the best triathletes on the planet and now it’s time for you to reap the benefits. Once you’ve perfectly adjusted the bike to your specific riding style, your personal best is as good as gone."},{"1":"14","2":"Canyon - The pinnacle of triathlon bike technology, the Speedmax CFR is our answer to the question: How fast can a bike be? From racing to training, experience the culmination of years of collaboration between the world’s best triathletes and our most-skilled engineers."}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
 </div>
-<div id="adding-r-stuff" class="section level1" number="3">
-<h1><span class="header-section-number">3</span> Adding R stuff</h1>
-<p>So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place.</p>
-<p>So, let’s say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:</p>
-<pre class="r"><code>samples &lt;- rnorm(100, mean=0, sd=1)
-hist(samples)</code></pre>
-<p><img src="02_data_acquisition_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<p>When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You’ll learn that all of these things and more can be customized in each R code block.</p>
+</div>
 </div>
 
 
