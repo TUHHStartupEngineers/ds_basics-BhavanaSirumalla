@@ -19,6 +19,8 @@ navbar:
               href: 04_data_visualization.html
             - text: "Machine_learning"
               href: Machine_learning.html
+            - text: "Automated_ML"
+              href: Automated_ML.html
     - text: "Class notes"
       href: 05_class_notes.html
     - text: "Links"

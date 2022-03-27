@@ -1,0 +1,8 @@
+ automl_models_h2o@leaderboard
+                                                model_id       auc   logloss     aucpr
+1 StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551 0.9437135 0.1821956 0.7269926
+2                          GBM_1_AutoML_2_20220323_00551 0.9433556 0.1824472 0.7260281
+3 StackedEnsemble_BestOfFamily_1_AutoML_2_20220323_00551 0.9433481 0.1825702 0.7261390
+4                          GBM_3_AutoML_2_20220323_00551 0.9372179 0.2391993 0.6902300
+5                          GBM_4_AutoML_2_20220323_00551 0.9328377 0.2615403 0.6980480
+6                          GBM_2_AutoML_2_20220323_00551 0.9292746 0.2401282 0.6726246
