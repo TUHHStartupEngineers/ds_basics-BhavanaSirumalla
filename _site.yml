@@ -17,8 +17,8 @@ navbar:
               href: 03_data_wrangling.html
             - text: "Data Visualization"
               href: 04_data_visualization.html
-            - text: "Machine_Learning"
-              href: Machine_Learning.html
+            - text: "Machine_learning"
+              href: Machine_learning.html
     - text: "Class notes"
       href: 05_class_notes.html
     - text: "Links"
