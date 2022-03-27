@@ -160,7 +160,7 @@ top_customers_tbl <- bike_orderlines_tbl %>%
   mutate(revenue_text = scales::dollar(revenue, 
                                        scale  = 1e-6, 
                                        prefix = "", 
-                                       suffix = "M €")) %>%
+                                       suffix = "M $")) %>%
   
   # Add Cumulative Percent
   mutate(cum_pct = cumsum(revenue) / sum(revenue)) %>%
@@ -198,13 +198,13 @@ top_customers_tbl %>%
   # Formatting
   scale_x_continuous(labels = scales::dollar_format(scale = 1e-6, 
                                                     prefix = "",
-                                                    suffix = "M €")) +
+                                                    suffix = "M $")) +
   labs(
     title = str_glue("Top {n} Customers"),
     subtitle = str_glue(
       "Start: {year(min(bike_orderlines_tbl$order_date))}
                End:  {year(max(bike_orderlines_tbl$order_date))}"),
-    x = "Revenue (M ???)",
+    x = "Revenue (M $)",
     y = "Customer",
     caption = str_glue("Top 6 customers contribute
                            52% of purchasing power.")
