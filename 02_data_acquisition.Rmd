@@ -1,6 +1,6 @@
 ---
 title: "02 Data Acqusition"
-date: "2022-03"
+#date: "2022-03"
 output:
   html_document:
     toc: true

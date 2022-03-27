@@ -13,7 +13,7 @@ navbar:
               href: 01_tidyverse.html
             - text: "Data Acquisition"
               href: 02_data_acquisition.html
-            - text: "03 Data Wrangling"
+            - text: "Data Wrangling"
               href: 03_data_wrangling.html
             - text: "Data Visualization"
               href: 04_data_visualization.html
