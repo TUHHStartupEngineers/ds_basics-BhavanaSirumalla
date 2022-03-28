@@ -19,8 +19,14 @@ navbar:
               href: 04_data_visualization.html
             - text: "Machine_learning"
               href: Machine_learning.html
+            - text: "Supervised_ML"
+              href: Supervised_ML.html
             - text: "Automated_ML"
               href: Automated_ML.html
+            - text: "Performance_metrics"
+              href: Performance_metrics.html
+            - text: "Models with LIME"
+              href: Lime.html
     - text: "Class notes"
       href: 05_class_notes.html
     - text: "Links"

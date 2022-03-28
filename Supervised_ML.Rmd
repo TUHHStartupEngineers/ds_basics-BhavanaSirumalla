@@ -1,0 +1,90 @@
+---
+title: "Supervised_ML"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    collapsed: false
+    number_sections: true
+    toc_depth: 3
+    #code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE, cache=TRUE)
+```
+
+# Supervised ML - Regression
+
+
+## Challenge
+
+```{r}
+# Standard
+library(tidyverse)
+
+# Modeling
+library(parsnip)
+
+# Preprocessing & Sampling
+library(recipes)
+library(rsample)
+
+# Modeling Error Metrics
+library(yardstick)
+
+# Plotting Decision Trees
+library(rpart.plot)
+library(tidymodels)
+library(broom.mixed)
+
+#I. Build a model ----------------------------------------------------------------
+
+bike_features_tbl <- readRDS("00_data/Business Decisions with Machine Learning/bike_features_tbl.rds")
+bike_features_data <- bike_features_tbl %>% 
+  select(model:gender, `Rear Derailleur`, `Shift Lever`) 
+
+set.seed(seed = 1123)
+
+# LINEAR REGRESSION -
+model_linear_reg <- linear_reg("regression") %>%
+  set_engine("lm")
+split_obj <- rsample::initial_split(bike_features_data, prop   = 0.80, 
+                                    strata = "category_2")
+
+train_tbl <- training(split_obj)
+test_tbl  <- testing(split_obj)
+
+train_tbl <- train_tbl %>% set_names(str_replace_all(names(train_tbl), " |-", "_"))
+test_tbl  <- test_tbl  %>% set_names(str_replace_all(names(test_tbl),  " |-", "_"))
+
+#II. Create features with the recipes package--------
+bike_recipe <- recipe_obj <- 
+  recipe(price  ~ ., data = train_tbl %>% select(-c(model:weight), -category_1, -c(category_3:gender))) %>% 
+  step_dummy(all_nominal(), -all_outcomes()) %>% 
+  step_zv(all_predictors()) %>% 
+  prep()
+
+summary(bike_recipe)
+
+train_transformed_tbl <- bake(bike_recipe, new_data = NULL)
+test_transformed_tbl  <- bake(bike_recipe, new_data = test_tbl)
+
+train_transformed_tbl
+test_transformed_tbl
+
+#III. Bundle the model and recipe with the workflow package
+bike_workflow <-  workflow() %>% add_model(model_linear_reg) %>% add_recipe(bike_recipe)
+
+bike_fit <- bike_workflow %>% fit(data = train_tbl)
+
+#IV. Evaluate your model with the yardstick package
+predict(bike_fit, test_tbl) %>%
+  
+  bind_cols(test_tbl %>% select(price)) %>%
+  yardstick::metrics(truth = price, estimate = .pred)
+
+```
+
+
