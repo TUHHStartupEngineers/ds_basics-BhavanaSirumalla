@@ -6,7 +6,7 @@
     outline:0
 }
 
-/* color of the elements in the toc*/
+/* color of the elements in the toc */
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
     background-color: #2DC6D6;
 }
