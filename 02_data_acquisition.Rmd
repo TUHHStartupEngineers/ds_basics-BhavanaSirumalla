@@ -9,7 +9,7 @@ output:
     collapsed: false
     number_sections: true
     toc_depth: 3
-    code_folding: hide
+    #code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -27,43 +27,39 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 library(httr)
 library(tidyverse)
 #getting data from spotify 
-clientID = 'caba8ed3155444e9aea7331dcd43bd69'
-secret = '269afd3f95e54e2cad66234672000e47'
+id = ########################
+code = ###########################
 response = POST('https://accounts.spotify.com/api/token',
   accept_json(),
-  authenticate(clientID, secret),
+  authenticate(id, code),
   body = list(grant_type = 'client_credentials'),
   encode = 'form',
   verbose()
 )
-mytoken = content(response)$access_token
-HeaderValue = paste0('Bearer ', mytoken)
+#token
+token = content(response)$access_token
+HeaderValue = paste0('Bearer ', token)
 albumID = "1NAmidJlEaVgA3MpcPFYGq"
 track_URI = paste0('https://api.spotify.com/v1/albums/', albumID,'/tracks')
 track_response = GET(url = track_URI, add_headers(Authorization = HeaderValue))
 tracks = content(track_response)
-
+#getting the info
 ntracks = length(tracks$items)
-tracks_list<-data.frame(
+artist_info<-data.frame(
   name=character(ntracks),
-  id=character(ntracks),
   artist=character(ntracks),
-  disc_number=numeric(ntracks),
-  track_number=numeric(ntracks),
-  duration_ms=numeric(ntracks),
   stringsAsFactors=FALSE
 )
 
+#looping to get data
 for(i in 1:ntracks){
-  tracks_list[i,]$id <- tracks$items[[i]]$id
-  tracks_list[i,]$name <- tracks$items[[i]]$name
-  tracks_list[i,]$artist <- tracks$items[[i]]$artists[[1]]$name
-  tracks_list[i,]$disc_number <- tracks$items[[i]]$disc_number
-  tracks_list[i,]$track_number <- tracks$items[[i]]$track_number
-  tracks_list[i,]$duration_ms <- tracks$items[[i]]$duration_ms
+  artist_info[i,]$name <- tracks$items[[i]]$name
+  artist_info[i,]$artist <- tracks$items[[i]]$artists[[1]]$name 
+  
 }
-tracks_list_tbl<-tracks_list
-tracks_list_tbl %>% glimpse()
+artist_info_tbl<-artist_info
+artist_info_tbl %>% glimpse()
+
 ```
 ## Challenge 2- Web Scraping
 
@@ -132,6 +128,8 @@ library(jsonlite)  # converts JSON files to R objects
 library(glue)      # concatenate strings
 library(stringi)   # character string/text processing
 
+# 1.1 COLLECT PRODUCT FAMILIES ----
+
 url_home          <- "https://www.canyon.com/en-de"
 html_home         <- read_html(url_home)
 
@@ -145,9 +143,10 @@ bike_category_tbl <- html_home %>%
   rename("url" = value) |> 
   mutate(url = str_c("https://www.canyon.com", url))
 
+bike_category_tbl
 
 # 02a. Get bike urls (single category)
-bike_category_url <- bike_category_tbl$url[2]
+bike_category_url <- bike_category_tbl$url[1]
 
 html_bike_category  <- read_html(bike_category_url)
 bike_url_tbl        <- html_bike_category %>%
@@ -163,7 +162,8 @@ bike_url_tbl        <- html_bike_category %>%
   # Convert vector to tibble
   enframe(name = "position", value = "url")
 
-bike_category_tbl 
+html_bike_category
+
 # 02b. Get bike description (single category)
 bike_desc_tbl <- html_bike_category %>%
   
@@ -176,5 +176,103 @@ bike_desc_tbl <- html_bike_category %>%
   # Convert vector to tibble
   enframe(name = "position", value = "description")
 
-bike_desc_tbl
+
+# 02c. Get JSON data
+bike_json_tbl  <- html_bike_category %>%
+  
+  html_nodes(css = '.productGrid__listItem.xlt-producttile > div') %>%
+  html_attr("data-gtm-impression") %>%
+  
+  # Convert the JSON format to dataframe
+  # map runs that function on each element of the list
+  map(fromJSON) %>% # need JSON ### need lists
+  
+  # Extract relevant information of the nested list
+  map(purrr::pluck, "ecommerce", "impressions") %>% # Need purrr and expl above
+  
+  # Set "not defined" and emtpy fields to NA (will be easier to work with)
+  map(na_if, "not defined") %>%
+  map(na_if, "") %>%
+  
+  # The class of dimension56 and price varies between numeric and char.
+  # This converts this column in each list to numeric
+  # across allows to perform the same operation on multiple columns
+  map(~mutate(., across(c("dimension56","price"), as.numeric))) %>%
+  
+  # Stack all lists together
+  bind_rows() %>%
+  # Convert to tibble so that we have the same data format
+  as_tibble() %>%
+  
+  # Add consecutive numbers so that we can bind all data together
+  # You could have also just use bind_cols()
+  rowid_to_column(var='position') %>%
+  left_join(bike_desc_tbl) %>%
+  left_join(bike_url_tbl)
+
+# Function ----------------------------------------------------------------
+
+get_bike_data <- function(url) {
+  
+  html_bike_category <- read_html(url)
+  
+  # Get the URLs
+  bike_url_tbl  <- html_bike_category %>%
+    html_nodes(css = ".productTile__contentWrapper > a") %>%
+    html_attr("href") %>%
+    str_remove(pattern = "\\?.*") %>%
+    enframe(name = "position", value = "url")
+  # Get the descriptions
+  bike_desc_tbl <- html_bike_category %>%
+    html_nodes(css = '.productTile__productSummaryLeft > 
+                      meta[itemprop="description"]') %>%
+    html_attr("content") %>%
+    enframe(name = "position", value = "description")
+  
+  # Get JSON data
+  bike_json_tbl <- html_bike_category %>%
+    html_nodes(css = '.productGrid__listItem.xlt-producttile > div') %>%
+    html_attr("data-gtm-impression") %>%
+    map(fromJSON) %>% # need JSON ### need lists
+    map(purrr::pluck, 2, "impressions") %>% 
+    map(na_if, "not defined") %>%
+    map(na_if, "") %>%
+    map(~mutate(., across(c("dimension56","metric4","price"), as.numeric))) %>%
+    bind_rows() %>%
+    as_tibble() %>%
+    rowid_to_column(var='position') %>%
+    left_join(bike_desc_tbl) %>%
+    left_join(bike_url_tbl)
+  
+}  
+
+bike_json_tbl
+# Run the function with the first url to check if it is working
+# bike_category_url <- bike_category_tbl$url[1]
+# bike_data_tbl     <- get_bike_data(url = bike_category_url)
+
+#bike_data_tbl
+
+bike_category_tbl$url[2]
+test <- get_bike_data(bike_category_tbl$url[2])
+
+
+bike_category_url_vec <- bike_category_tbl %>% 
+  pull(url)
+
+# Run the function with every url as an argument
+bike_data_lst <- map(bike_category_url_vec, get_bike_data)
+
+# Merge the list into a tibble
+bike_data_tbl <- bind_rows(bike_data_lst)
+#saveRDS(bike_data_tbl, "bike_data_tbl.rds")
+
+# Check for duplicates
+bike_data_tbl %>%
+  group_by(id) %>%
+  filter(n()>1) %>%
+  arrange(id) %>% 
+  View()
+
+
 ```
