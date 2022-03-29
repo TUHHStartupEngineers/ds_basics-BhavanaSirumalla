@@ -27,8 +27,8 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 library(httr)
 library(tidyverse)
 #getting data from spotify 
-id = ########################
-code = ###########################
+  id = ########################
+  code = ###########################
 response = POST('https://accounts.spotify.com/api/token',
   accept_json(),
   authenticate(id, code),
