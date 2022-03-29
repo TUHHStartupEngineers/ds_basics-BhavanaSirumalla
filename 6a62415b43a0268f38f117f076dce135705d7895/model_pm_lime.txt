@@ -1,0 +1,6 @@
+1    StackedEnsemble_AllModels_3_AutoML_38_20220327_220019 
+2    StackedEnsemble_AllModels_2_AutoML_38_20220327_220019 0.8593991 0.3457903 0.7126126            0.2100668
+3    StackedEnsemble_AllModels_1_AutoML_38_20220327_220019 0.8591423 0.3495270 0.7064113            0.2214304
+4 StackedEnsemble_BestOfFamily_3_AutoML_38_20220327_220019 0.8568310 0.3463106 0.7066853            0.2242553
+5 StackedEnsemble_BestOfFamily_2_AutoML_38_20220327_220019 0.8564458 0.3484332 0.7079252            0.2299692
+6                          GLM_1_AutoML_38_20220327_220019 0.8536210 0.3519809 0.7018518            0.2470467

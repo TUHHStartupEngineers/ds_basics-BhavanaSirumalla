@@ -1,0 +1,2743 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Performance_metrics</title>
+
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MyLabJournal</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Index</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Journal
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_tidyverse.html">Tidyverse</a>
+    </li>
+    <li>
+      <a href="02_data_acquisition.html">Data Acquisition</a>
+    </li>
+    <li>
+      <a href="03_data_wrangling.html">Data Wrangling</a>
+    </li>
+    <li>
+      <a href="04_data_visualization.html">Data Visualization</a>
+    </li>
+    <li>
+      <a href="Machine_learning.html">Machine_learning</a>
+    </li>
+    <li>
+      <a href="Supervised_ML.html">Supervised_ML</a>
+    </li>
+    <li>
+      <a href="Automated_ML.html">Automated_ML</a>
+    </li>
+    <li>
+      <a href="Performance_metrics.html">Performance_metrics</a>
+    </li>
+    <li>
+      <a href="Lime.html">Lime</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="05_class_notes.html">Class notes</a>
+</li>
+<li>
+  <a href="06_links.html">Links</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Performance_metrics</h1>
+
+</div>
+
+
+<div id="performance-measures" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Performance measures</h1>
+<div id="challenge" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> Challenge</h2>
+<pre class="r"><code>library(dplyr)
+library(tidyverse)
+library(readxl)
+library(rsample)
+library(recipes)
+library(h2o)
+
+#1.Load the training &amp; test dataset
+
+product_backorders_tbl &lt;- read_csv(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/product_backorders.csv&quot;)
+# Data split
+set.seed(seed = 1113)
+split_obj &lt;- rsample::initial_split(product_backorders_tbl, prop = 0.85)
+train_readable_tbl &lt;- training(split_obj)
+test_readable_tbl  &lt;- testing(split_obj)
+
+#2. Specify the response and predictor variables
+recipe_obj &lt;- recipe(went_on_backorder ~., data = product_backorders_tbl) %&gt;% 
+  step_zv(all_predictors()) %&gt;% 
+  prep()
+
+train_tbl &lt;- bake(recipe_obj, new_data = train_readable_tbl)
+test_tbl  &lt;- bake(recipe_obj, new_data = test_readable_tbl)
+
+#3. Run AutoML specifying the stopping criterion
+
+# Modeling
+h2o.init()</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         10 hours 26 minutes 
+##     H2O cluster timezone:       Europe/Berlin 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.36.0.3 
+##     H2O cluster version age:    1 month and 11 days  
+##     H2O cluster name:           H2O_started_from_R_bhava_drs368 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   0.57 GB 
+##     H2O cluster total cores:    8 
+##     H2O cluster allowed cores:  8 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     R Version:                  R version 4.1.1 (2021-08-10)</code></pre>
+<pre class="r"><code># Split data into a training and a validation data frame
+# Setting the seed is just for reproducability
+split_h2o &lt;- h2o.splitFrame(as.h2o(train_tbl), ratios = c(0.85), seed = 1234)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>train_h2o &lt;- split_h2o[[1]]
+valid_h2o &lt;- split_h2o[[2]]
+test_h2o  &lt;- as.h2o(test_tbl)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code># Set the target and predictors
+y &lt;- &quot;went_on_backorder&quot; 
+x &lt;- setdiff(names(train_h2o), y) 
+
+automl_models_h2o &lt;- h2o.automl(
+  x = x,
+  y = y,
+  training_frame    = train_h2o,
+  validation_frame  = valid_h2o,
+  leaderboard_frame = test_h2o,
+  max_runtime_secs  = 30,
+  nfolds            = 5 
+)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+## 00:42:32.23: User specified a validation frame with cross-validation still enabled. Please note that the models will still be validated using cross-validation only, the validation frame will be used to provide purely informative validation metrics on the trained models.
+## 00:42:32.37: AutoML: XGBoost is not available; skipping it.
+## 00:42:32.55: Step &#39;best_of_family_xgboost&#39; not defined in provider &#39;StackedEnsemble&#39;: skipping it.
+## 00:42:32.55: Step &#39;all_xgboost&#39; not defined in provider &#39;StackedEnsemble&#39;: skipping it.
+  |                                                                            
+  |======                                                                |   8%
+  |                                                                            
+  |=========                                                             |  13%
+  |                                                                            
+  |============                                                          |  17%
+  |                                                                            
+  |==============                                                        |  20%
+  |                                                                            
+  |=================                                                     |  24%
+  |                                                                            
+  |===================                                                   |  28%
+  |                                                                            
+  |=======================                                               |  33%
+  |                                                                            
+  |===========================                                           |  39%
+  |                                                                            
+  |===============================                                       |  45%
+  |                                                                            
+  |====================================                                  |  52%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |==========================================                            |  59%
+  |                                                                            
+  |============================================                          |  63%
+  |                                                                            
+  |================================================                      |  68%
+  |                                                                            
+  |==================================================                    |  72%
+  |                                                                            
+  |=====================================================                 |  76%
+  |                                                                            
+  |========================================================              |  80%
+  |                                                                            
+  |===========================================================           |  84%
+  |                                                                            
+  |=============================================================         |  88%
+  |                                                                            
+  |================================================================      |  91%
+  |                                                                            
+  |===================================================================   |  95%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>#4. View the leaderboard 
+
+typeof(automl_models_h2o)</code></pre>
+<pre><code>## [1] &quot;S4&quot;</code></pre>
+<pre class="r"><code>slotNames(automl_models_h2o)</code></pre>
+<pre><code>## [1] &quot;project_name&quot;   &quot;leader&quot;         &quot;leaderboard&quot;    &quot;event_log&quot;     
+## [5] &quot;modeling_steps&quot; &quot;training_info&quot;</code></pre>
+<pre class="r"><code>automl_models_h2o@leaderboard</code></pre>
+<pre><code>##                                                  model_id       auc   logloss
+## 1 StackedEnsemble_BestOfFamily_2_AutoML_42_20220328_04232 0.9420680 0.1854292
+## 2 StackedEnsemble_BestOfFamily_1_AutoML_42_20220328_04232 0.9419437 0.1848372
+## 3                          GBM_1_AutoML_42_20220328_04232 0.9419085 0.1844944
+## 4                          GBM_3_AutoML_42_20220328_04232 0.9217493 0.2793762
+## 5                          DRF_1_AutoML_42_20220328_04232 0.8946082 0.2674981
+## 6                          GBM_4_AutoML_42_20220328_04232 0.8944377 0.2982524
+##       aucpr mean_per_class_error      rmse        mse
+## 1 0.7300485            0.1511454 0.2355287 0.05547375
+## 2 0.7284463            0.1574797 0.2358268 0.05561426
+## 3 0.7274577            0.1579388 0.2355391 0.05547865
+## 4 0.6555274            0.1923022 0.2850104 0.08123094
+## 5 0.6022665            0.2027055 0.2649564 0.07020188
+## 6 0.6303121            0.2067457 0.2948276 0.08692330
+## 
+## [8 rows x 7 columns]</code></pre>
+<pre class="r"><code>automl_models_h2o@leader</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: stackedensemble
+## Model ID:  StackedEnsemble_BestOfFamily_2_AutoML_42_20220328_04232 
+## Number of Base Models: 3
+## 
+## Base Models (count by algorithm type):
+## 
+## drf gbm glm 
+##   1   1   1 
+## 
+## Metalearner:
+## 
+## Metalearner algorithm: glm
+## Metalearner cross-validation fold assignment:
+##   Fold assignment scheme: AUTO
+##   Number of folds: 5
+##   Fold column: NULL
+## Metalearner hyperparameters: 
+## 
+## 
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on training data. **
+## 
+## MSE:  0.03608057
+## RMSE:  0.1899489
+## LogLoss:  0.128619
+## Mean Per-Class Error:  0.1082801
+## AUC:  0.982603
+## AUCPR:  0.8945752
+## Gini:  0.9652059
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No  Yes    Error       Rate
+## No     8614  190 0.021581  =190/8804
+## Yes     233  962 0.194979  =233/1195
+## Totals 8847 1152 0.042304  =423/9999
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.419315    0.819770 165
+## 2                       max f2  0.203031    0.856705 239
+## 3                 max f0point5  0.498305    0.845001 139
+## 4                 max accuracy  0.424886    0.957796 163
+## 5                max precision  0.986404    1.000000   0
+## 6                   max recall  0.033152    1.000000 339
+## 7              max specificity  0.986404    1.000000   0
+## 8             max absolute_mcc  0.419315    0.795986 165
+## 9   max min_per_class_accuracy  0.205503    0.930032 238
+## 10 max mean_per_class_accuracy  0.184229    0.932723 246
+## 11                     max tns  0.986404 8804.000000   0
+## 12                     max fns  0.986404 1194.000000   0
+## 13                     max fps  0.000643 8804.000000 399
+## 14                     max tps  0.033152 1195.000000 339
+## 15                     max tnr  0.986404    1.000000   0
+## 16                     max fnr  0.986404    0.999163   0
+## 17                     max fpr  0.000643    1.000000 399
+## 18                     max tpr  0.033152    1.000000 339
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on validation data. **
+## 
+## MSE:  0.05188649
+## RMSE:  0.2277861
+## LogLoss:  0.174726
+## Mean Per-Class Error:  0.1237716
+## AUC:  0.9491947
+## AUCPR:  0.7525327
+## Gini:  0.8983894
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     1961 143 0.067966  =143/2104
+## Yes      51 233 0.179577    =51/284
+## Totals 2012 376 0.081240  =194/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.256655    0.706061 195
+## 2                       max f2  0.153035    0.791081 238
+## 3                 max f0point5  0.552343    0.720588 102
+## 4                 max accuracy  0.420471    0.928811 140
+## 5                max precision  0.943659    1.000000   0
+## 6                   max recall  0.004650    1.000000 387
+## 7              max specificity  0.943659    1.000000   0
+## 8             max absolute_mcc  0.239052    0.669486 201
+## 9   max min_per_class_accuracy  0.165734    0.892586 232
+## 10 max mean_per_class_accuracy  0.153035    0.898476 238
+## 11                     max tns  0.943659 2104.000000   0
+## 12                     max fns  0.943659  283.000000   0
+## 13                     max fps  0.000689 2104.000000 399
+## 14                     max tps  0.004650  284.000000 387
+## 15                     max tnr  0.943659    1.000000   0
+## 16                     max fnr  0.943659    0.996479   0
+## 17                     max fpr  0.000689    1.000000 399
+## 18                     max tpr  0.004650    1.000000 387
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.05217998
+## RMSE:  0.2284294
+## LogLoss:  0.1765212
+## Mean Per-Class Error:  0.1612408
+## AUC:  0.9500363
+## AUCPR:  0.7425282
+## Gini:  0.9000726
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error        Rate
+## No     11625  544 0.044704  =544/12169
+## Yes      455 1183 0.277778   =455/1638
+## Totals 12080 1727 0.072355  =999/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.358624     0.703120 186
+## 2                       max f2  0.182704     0.775156 253
+## 3                 max f0point5  0.486010     0.723824 139
+## 4                 max accuracy  0.444510     0.931412 154
+## 5                max precision  0.964391     1.000000   0
+## 6                   max recall  0.004321     1.000000 392
+## 7              max specificity  0.964391     1.000000   0
+## 8             max absolute_mcc  0.375396     0.662282 179
+## 9   max min_per_class_accuracy  0.155457     0.884615 266
+## 10 max mean_per_class_accuracy  0.155457     0.884908 266
+## 11                     max tns  0.964391 12169.000000   0
+## 12                     max fns  0.964391  1637.000000   0
+## 13                     max fps  0.000774 12169.000000 399
+## 14                     max tps  0.004321  1638.000000 392
+## 15                     max tnr  0.964391     1.000000   0
+## 16                     max fnr  0.964391     0.999389   0
+## 17                     max fpr  0.000774     1.000000 399
+## 18                     max tpr  0.004321     1.000000 392
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`</code></pre>
+<pre class="r"><code>#5. Predicting using Leader Model
+
+# Depending on the algorithm, the output will be different
+h2o.getModel(&quot;GBM_1_AutoML_2_20220323_00551&quot;)</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: gbm
+## Model ID:  GBM_1_AutoML_2_20220323_00551 
+## Model Summary: 
+##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+## 1              85                       85               80303         6
+##   max_depth mean_depth min_leaves max_leaves mean_leaves
+## 1        15   14.34118          9         85    70.25883
+## 
+## 
+## H2OBinomialMetrics: gbm
+## ** Reported on training data. **
+## 
+## MSE:  0.0364535
+## RMSE:  0.190928
+## LogLoss:  0.1256174
+## Mean Per-Class Error:  0.101465
+## AUC:  0.9797668
+## AUCPR:  0.8748105
+## Gini:  0.9595336
+## R^2:  0.6513665
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error        Rate
+## No     11750  419 0.034432  =419/12169
+## Yes      276 1362 0.168498   =276/1638
+## Totals 12026 1781 0.050337  =695/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.356217     0.796724 193
+## 2                       max f2  0.194368     0.848793 253
+## 3                 max f0point5  0.568944     0.823557 128
+## 4                 max accuracy  0.458060     0.952633 160
+## 5                max precision  0.970383     1.000000   0
+## 6                   max recall  0.019776     1.000000 362
+## 7              max specificity  0.970383     1.000000   0
+## 8             max absolute_mcc  0.356217     0.768933 193
+## 9   max min_per_class_accuracy  0.194368     0.927350 253
+## 10 max mean_per_class_accuracy  0.141054     0.931094 275
+## 11                     max tns  0.970383 12169.000000   0
+## 12                     max fns  0.970383  1636.000000   0
+## 13                     max fps  0.000505 12169.000000 399
+## 14                     max tps  0.019776  1638.000000 362
+## 15                     max tnr  0.970383     1.000000   0
+## 16                     max fnr  0.970383     0.998779   0
+## 17                     max fpr  0.000505     1.000000 399
+## 18                     max tpr  0.019776     1.000000 362
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on validation data. **
+## 
+## MSE:  0.05090462
+## RMSE:  0.2256205
+## LogLoss:  0.170807
+## Mean Per-Class Error:  0.140005
+## AUC:  0.9500766
+## AUCPR:  0.7456298
+## Gini:  0.9001533
+## R^2:  0.5141952
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     1989 115 0.054658  =115/2104
+## Yes      64 220 0.225352    =64/284
+## Totals 2053 335 0.074958  =179/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.285752    0.710824 190
+## 2                       max f2  0.174324    0.788804 231
+## 3                 max f0point5  0.583336    0.729572 104
+## 4                 max accuracy  0.420489    0.932161 148
+## 5                max precision  0.971121    1.000000   0
+## 6                   max recall  0.001351    1.000000 396
+## 7              max specificity  0.971121    1.000000   0
+## 8             max absolute_mcc  0.285752    0.671107 190
+## 9   max min_per_class_accuracy  0.143462    0.894011 247
+## 10 max mean_per_class_accuracy  0.118796    0.897148 261
+## 11                     max tns  0.971121 2104.000000   0
+## 12                     max fns  0.971121  283.000000   0
+## 13                     max fps  0.000491 2104.000000 399
+## 14                     max tps  0.001351  284.000000 396
+## 15                     max tnr  0.971121    1.000000   0
+## 16                     max fnr  0.971121    0.996479   0
+## 17                     max fpr  0.000491    1.000000 399
+## 18                     max tpr  0.001351    1.000000 396
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.05133987
+## RMSE:  0.226583
+## LogLoss:  0.1719745
+## Mean Per-Class Error:  0.1567029
+## AUC:  0.9499896
+## AUCPR:  0.7438776
+## Gini:  0.8999792
+## R^2:  0.5089965
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11572  597 0.049059   =597/12169
+## Yes      433 1205 0.264347    =433/1638
+## Totals 12005 1802 0.074600  =1030/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.352409     0.700581 198
+## 2                       max f2  0.158466     0.778760 268
+## 3                 max f0point5  0.527210     0.720817 140
+## 4                 max accuracy  0.479413     0.930470 157
+## 5                max precision  0.975611     1.000000   0
+## 6                   max recall  0.005206     1.000000 387
+## 7              max specificity  0.975611     1.000000   0
+## 8             max absolute_mcc  0.274690     0.659421 224
+## 9   max min_per_class_accuracy  0.131267     0.886447 282
+## 10 max mean_per_class_accuracy  0.134664     0.887696 280
+## 11                     max tns  0.975611 12169.000000   0
+## 12                     max fns  0.975611  1637.000000   0
+## 13                     max fps  0.000530 12169.000000 399
+## 14                     max tps  0.005206  1638.000000 387
+## 15                     max tnr  0.975611     1.000000   0
+## 16                     max fnr  0.975611     0.999389   0
+## 17                     max fpr  0.000530     1.000000 399
+## 18                     max tpr  0.005206     1.000000 387
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## Cross-Validation Metrics Summary: 
+##                               mean        sd cv_1_valid cv_2_valid cv_3_valid
+## accuracy                  0.924892  0.011586   0.931933   0.928675   0.905831
+## auc                       0.949670  0.005616   0.958651   0.951323   0.946623
+## err                       0.075108  0.011586   0.068067   0.071325   0.094169
+## err_count               207.400000 31.973427 188.000000 197.000000 260.000000
+## f0point5                  0.682207  0.053359   0.730020   0.673244   0.606872
+## f1                        0.706197  0.027671   0.751979   0.701967   0.676617
+## f2                        0.736229  0.043186   0.775299   0.733249   0.764474
+## lift_top_group            7.793544  0.600202   6.850198   8.354118   7.888571
+## logloss                   0.172039  0.007086   0.168650   0.161997   0.180851
+## max_per_class_error       0.239551  0.071760   0.208333   0.244300   0.163077
+## mcc                       0.669025  0.027157   0.713853   0.663855   0.639945
+## mean_per_class_accuracy   0.853686  0.026810   0.872311   0.853003   0.875974
+## mean_per_class_error      0.146314  0.026810   0.127689   0.146997   0.124026
+## mse                       0.051377  0.002836   0.050939   0.047684   0.055571
+## pr_auc                    0.742312  0.029364   0.777912   0.756518   0.701147
+## precision                 0.669006  0.075127   0.716080   0.655367   0.567850
+## r2                        0.507760  0.031141   0.550610   0.517352   0.464922
+## recall                    0.760449  0.071760   0.791667   0.755700   0.836923
+## rmse                      0.226596  0.006238   0.225697   0.218367   0.235734
+## specificity               0.946922  0.021236   0.952956   0.950306   0.915025
+##                         cv_4_valid cv_5_valid
+## accuracy                  0.935168   0.922854
+## auc                       0.944342   0.947410
+## err                       0.064832   0.077146
+## err_count               179.000000 213.000000
+## f0point5                  0.737066   0.663834
+## f1                        0.699160   0.701262
+## f2                        0.664962   0.743163
+## lift_top_group            8.242703   7.632132
+## logloss                   0.174023   0.174674
+## max_per_class_error       0.356037   0.226006
+## mcc                       0.666204   0.661269
+## mean_per_class_accuracy   0.808856   0.858285
+## mean_per_class_error      0.191144   0.141715
+## mse                       0.050735   0.051954
+## pr_auc                    0.749124   0.726857
+## precision                 0.764706   0.641026
+## r2                        0.508857   0.497059
+## recall                    0.643963   0.773994
+## rmse                      0.225245   0.227935
+## specificity               0.973749   0.942576</code></pre>
+<pre class="r"><code># h2o.getModel(&quot;StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551&quot;) %&gt;% 
+#   h2o.saveModel(path = &quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model&quot;)
+# h2o.getModel(&quot;GBM_3_AutoML_2_20220323_00551&quot;) %&gt;% 
+#   h2o.saveModel(path = &quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model&quot;)
+
+# Extracts and H2O model name by a position so can more easily use h2o.getModel()
+extract_h2o_model_name_by_position &lt;- function(h2o_leaderboard, n = 1, verbose = T) {
+  
+  model_name &lt;- h2o_leaderboard %&gt;%
+    as.tibble() %&gt;%
+    slice(n) %&gt;%
+    pull(model_id)
+  
+  if (verbose) message(model_name)
+  
+  return(model_name)
+  
+}
+
+automl_models_h2o@leaderboard %&gt;% 
+  extract_h2o_model_name_by_position(6) %&gt;% 
+  h2o.getModel()</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: gbm
+## Model ID:  GBM_4_AutoML_42_20220328_04232 
+## Model Summary: 
+##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+## 1               3                        3                5764        10
+##   max_depth mean_depth min_leaves max_leaves mean_leaves
+## 1        10   10.00000        109        196   148.33333
+## 
+## 
+## H2OBinomialMetrics: gbm
+## ** Reported on training data. **
+## 
+## MSE:  0.08376504
+## RMSE:  0.2894219
+## LogLoss:  0.2883921
+## Mean Per-Class Error:  0.1932453
+## AUC:  0.9323499
+## AUCPR:  0.7220284
+## Gini:  0.8646997
+## R^2:  0.1988891
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11693  476 0.039116   =476/12169
+## Yes      569 1069 0.347375    =569/1638
+## Totals 12262 1545 0.075686  =1045/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.184162     0.671693 189
+## 2                       max f2  0.133204     0.726505 262
+## 3                 max f0point5  0.230729     0.710757 139
+## 4                 max accuracy  0.207237     0.927428 163
+## 5                max precision  0.431790     1.000000   0
+## 6                   max recall  0.088282     1.000000 394
+## 7              max specificity  0.431790     1.000000   0
+## 8             max absolute_mcc  0.194726     0.629775 176
+## 9   max min_per_class_accuracy  0.123255     0.853645 281
+## 10 max mean_per_class_accuracy  0.117961     0.855917 293
+## 11                     max tns  0.431790 12169.000000   0
+## 12                     max fns  0.431790  1636.000000   0
+## 13                     max fps  0.087350 12169.000000 399
+## 14                     max tps  0.088282  1638.000000 394
+## 15                     max tnr  0.431790     1.000000   0
+## 16                     max fnr  0.431790     0.998779   0
+## 17                     max fpr  0.087350     1.000000 399
+## 18                     max tpr  0.088282     1.000000 394
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on validation data. **
+## 
+## MSE:  0.08569573
+## RMSE:  0.2927383
+## LogLoss:  0.2949472
+## Mean Per-Class Error:  0.1961589
+## AUC:  0.9003508
+## AUCPR:  0.6565255
+## Gini:  0.8007015
+## R^2:  0.1821687
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     2012  92 0.043726   =92/2104
+## Yes      99 185 0.348592    =99/284
+## Totals 2111 277 0.079983  =191/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.176897    0.659537 136
+## 2                       max f2  0.139989    0.701978 182
+## 3                 max f0point5  0.224058    0.692149  97
+## 4                 max accuracy  0.224058    0.921692  97
+## 5                max precision  0.408495    1.000000   0
+## 6                   max recall  0.087700    1.000000 396
+## 7              max specificity  0.408495    1.000000   0
+## 8             max absolute_mcc  0.176897    0.614292 136
+## 9   max min_per_class_accuracy  0.117403    0.831274 228
+## 10 max mean_per_class_accuracy  0.139989    0.837181 182
+## 11                     max tns  0.408495 2104.000000   0
+## 12                     max fns  0.408495  283.000000   0
+## 13                     max fps  0.087587 2104.000000 399
+## 14                     max tps  0.087700  284.000000 396
+## 15                     max tnr  0.408495    1.000000   0
+## 16                     max fnr  0.408495    0.996479   0
+## 17                     max fpr  0.087587    1.000000 399
+## 18                     max tpr  0.087700    1.000000 396
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.08555935
+## RMSE:  0.2925053
+## LogLoss:  0.2940425
+## Mean Per-Class Error:  0.1748056
+## AUC:  0.9059227
+## AUCPR:  0.6178728
+## Gini:  0.8118455
+## R^2:  0.1817287
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11280  889 0.073054   =889/12169
+## Yes      453 1185 0.276557    =453/1638
+## Totals 11733 2074 0.097197  =1342/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.156824     0.638470 222
+## 2                       max f2  0.133328     0.712972 255
+## 3                 max f0point5  0.192376     0.634467 181
+## 4                 max accuracy  0.192376     0.913088 181
+## 5                max precision  0.535526     1.000000   0
+## 6                   max recall  0.085807     1.000000 388
+## 7              max specificity  0.535526     1.000000   0
+## 8             max absolute_mcc  0.156824     0.588638 222
+## 9   max min_per_class_accuracy  0.122721     0.846742 274
+## 10 max mean_per_class_accuracy  0.124100     0.848672 271
+## 11                     max tns  0.535526 12169.000000   0
+## 12                     max fns  0.535526  1637.000000   0
+## 13                     max fps  0.079638 12169.000000 399
+## 14                     max tps  0.085807  1638.000000 388
+## 15                     max tnr  0.535526     1.000000   0
+## 16                     max fnr  0.535526     0.999389   0
+## 17                     max fpr  0.079638     1.000000 399
+## 18                     max tpr  0.085807     1.000000 388
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## Cross-Validation Metrics Summary: 
+##                               mean        sd cv_1_valid cv_2_valid cv_3_valid
+## accuracy                  0.911783  0.009937   0.925778   0.916365   0.903296
+## auc                       0.905870  0.020806   0.942430   0.893898   0.892193
+## err                       0.088217  0.009937   0.074222   0.083635   0.096704
+## err_count               243.600000 27.400730 205.000000 231.000000 267.000000
+## f0point5                  0.628450  0.050713   0.713895   0.623870   0.594552
+## f1                        0.647702  0.039977   0.718019   0.641860   0.629681
+## f2                        0.669015  0.033464   0.722191   0.660920   0.669222
+## lift_top_group            6.374066  0.626976   5.754167   7.068869   6.978352
+## logloss                   0.294043  0.007578   0.292439   0.286386   0.305428
+## max_per_class_error       0.315439  0.034718   0.275000   0.325733   0.301538
+## mcc                       0.599273  0.043529   0.675330   0.595520   0.578398
+## mean_per_class_accuracy   0.813412  0.017863   0.840435   0.810453   0.814543
+## mean_per_class_error      0.186588  0.017863   0.159565   0.189547   0.185457
+## mse                       0.085559  0.002828   0.087033   0.082007   0.088945
+## pr_auc                    0.614544  0.055259   0.709384   0.606194   0.566189
+## precision                 0.616603  0.058337   0.711172   0.612426   0.573232
+## r2                        0.180366  0.033972   0.232185   0.169944   0.143566
+## recall                    0.684561  0.034718   0.725000   0.674267   0.698462
+## rmse                      0.292473  0.004841   0.295014   0.286368   0.298237
+## specificity               0.942263  0.011852   0.955870   0.946640   0.930624
+##                         cv_4_valid cv_5_valid
+## accuracy                  0.911988   0.901485
+## auc                       0.898845   0.901984
+## err                       0.088012   0.098515
+## err_count               243.000000 272.000000
+## f0point5                  0.623853   0.586081
+## f1                        0.626728   0.622222
+## f2                        0.629630   0.663114
+## lift_top_group            6.268524   5.800420
+## logloss                   0.288702   0.297261
+## max_per_class_error       0.368421   0.306502
+## mcc                       0.576866   0.570250
+## mean_per_class_accuracy   0.790359   0.811269
+## mean_per_class_error      0.209641   0.188731
+## mse                       0.083343   0.086469
+## pr_auc                    0.601986   0.588969
+## precision                 0.621951   0.564232
+## r2                        0.193198   0.162937
+## recall                    0.631579   0.693498
+## rmse                      0.288692   0.294056
+## specificity               0.949139   0.929040</code></pre>
+<pre class="r"><code>#6. Save the leader model
+
+# h2o.getModel(&quot;GBM_1_AutoML_2_20220323_00551&quot;) %&gt;% 
+#   h2o.saveModel(path = &quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model&quot;)
+
+h2o.loadModel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551&quot;)</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: gbm
+## Model ID:  GBM_1_AutoML_2_20220323_00551 
+## Model Summary: 
+##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+## 1              85                       85               80303         6
+##   max_depth mean_depth min_leaves max_leaves mean_leaves
+## 1        15   14.34118          9         85    70.25883
+## 
+## 
+## H2OBinomialMetrics: gbm
+## ** Reported on training data. **
+## 
+## MSE:  0.0364535
+## RMSE:  0.190928
+## LogLoss:  0.1256174
+## Mean Per-Class Error:  0.101465
+## AUC:  0.9797668
+## AUCPR:  0.8748105
+## Gini:  0.9595336
+## R^2:  0.6513665
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error        Rate
+## No     11750  419 0.034432  =419/12169
+## Yes      276 1362 0.168498   =276/1638
+## Totals 12026 1781 0.050337  =695/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.356217     0.796724 193
+## 2                       max f2  0.194368     0.848793 253
+## 3                 max f0point5  0.568944     0.823557 128
+## 4                 max accuracy  0.458060     0.952633 160
+## 5                max precision  0.970383     1.000000   0
+## 6                   max recall  0.019776     1.000000 362
+## 7              max specificity  0.970383     1.000000   0
+## 8             max absolute_mcc  0.356217     0.768933 193
+## 9   max min_per_class_accuracy  0.194368     0.927350 253
+## 10 max mean_per_class_accuracy  0.141054     0.931094 275
+## 11                     max tns  0.970383 12169.000000   0
+## 12                     max fns  0.970383  1636.000000   0
+## 13                     max fps  0.000505 12169.000000 399
+## 14                     max tps  0.019776  1638.000000 362
+## 15                     max tnr  0.970383     1.000000   0
+## 16                     max fnr  0.970383     0.998779   0
+## 17                     max fpr  0.000505     1.000000 399
+## 18                     max tpr  0.019776     1.000000 362
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on validation data. **
+## 
+## MSE:  0.05090462
+## RMSE:  0.2256205
+## LogLoss:  0.170807
+## Mean Per-Class Error:  0.140005
+## AUC:  0.9500766
+## AUCPR:  0.7456298
+## Gini:  0.9001533
+## R^2:  0.5141952
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     1989 115 0.054658  =115/2104
+## Yes      64 220 0.225352    =64/284
+## Totals 2053 335 0.074958  =179/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.285752    0.710824 190
+## 2                       max f2  0.174324    0.788804 231
+## 3                 max f0point5  0.583336    0.729572 104
+## 4                 max accuracy  0.420489    0.932161 148
+## 5                max precision  0.971121    1.000000   0
+## 6                   max recall  0.001351    1.000000 396
+## 7              max specificity  0.971121    1.000000   0
+## 8             max absolute_mcc  0.285752    0.671107 190
+## 9   max min_per_class_accuracy  0.143462    0.894011 247
+## 10 max mean_per_class_accuracy  0.118796    0.897148 261
+## 11                     max tns  0.971121 2104.000000   0
+## 12                     max fns  0.971121  283.000000   0
+## 13                     max fps  0.000491 2104.000000 399
+## 14                     max tps  0.001351  284.000000 396
+## 15                     max tnr  0.971121    1.000000   0
+## 16                     max fnr  0.971121    0.996479   0
+## 17                     max fpr  0.000491    1.000000 399
+## 18                     max tpr  0.001351    1.000000 396
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.05133987
+## RMSE:  0.226583
+## LogLoss:  0.1719745
+## Mean Per-Class Error:  0.1567029
+## AUC:  0.9499896
+## AUCPR:  0.7438776
+## Gini:  0.8999792
+## R^2:  0.5089965
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11572  597 0.049059   =597/12169
+## Yes      433 1205 0.264347    =433/1638
+## Totals 12005 1802 0.074600  =1030/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.352409     0.700581 198
+## 2                       max f2  0.158466     0.778760 268
+## 3                 max f0point5  0.527210     0.720817 140
+## 4                 max accuracy  0.479413     0.930470 157
+## 5                max precision  0.975611     1.000000   0
+## 6                   max recall  0.005206     1.000000 387
+## 7              max specificity  0.975611     1.000000   0
+## 8             max absolute_mcc  0.274690     0.659421 224
+## 9   max min_per_class_accuracy  0.131267     0.886447 282
+## 10 max mean_per_class_accuracy  0.134664     0.887696 280
+## 11                     max tns  0.975611 12169.000000   0
+## 12                     max fns  0.975611  1637.000000   0
+## 13                     max fps  0.000530 12169.000000 399
+## 14                     max tps  0.005206  1638.000000 387
+## 15                     max tnr  0.975611     1.000000   0
+## 16                     max fnr  0.975611     0.999389   0
+## 17                     max fpr  0.000530     1.000000 399
+## 18                     max tpr  0.005206     1.000000 387
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## Cross-Validation Metrics Summary: 
+##                               mean        sd cv_1_valid cv_2_valid cv_3_valid
+## accuracy                  0.924892  0.011586   0.931933   0.928675   0.905831
+## auc                       0.949670  0.005616   0.958651   0.951323   0.946623
+## err                       0.075108  0.011586   0.068067   0.071325   0.094169
+## err_count               207.400000 31.973427 188.000000 197.000000 260.000000
+## f0point5                  0.682207  0.053359   0.730020   0.673244   0.606872
+## f1                        0.706197  0.027671   0.751979   0.701967   0.676617
+## f2                        0.736229  0.043186   0.775299   0.733249   0.764474
+## lift_top_group            7.793544  0.600202   6.850198   8.354118   7.888571
+## logloss                   0.172039  0.007086   0.168650   0.161997   0.180851
+## max_per_class_error       0.239551  0.071760   0.208333   0.244300   0.163077
+## mcc                       0.669025  0.027157   0.713853   0.663855   0.639945
+## mean_per_class_accuracy   0.853686  0.026810   0.872311   0.853003   0.875974
+## mean_per_class_error      0.146314  0.026810   0.127689   0.146997   0.124026
+## mse                       0.051377  0.002836   0.050939   0.047684   0.055571
+## pr_auc                    0.742312  0.029364   0.777912   0.756518   0.701147
+## precision                 0.669006  0.075127   0.716080   0.655367   0.567850
+## r2                        0.507760  0.031141   0.550610   0.517352   0.464922
+## recall                    0.760449  0.071760   0.791667   0.755700   0.836923
+## rmse                      0.226596  0.006238   0.225697   0.218367   0.235734
+## specificity               0.946922  0.021236   0.952956   0.950306   0.915025
+##                         cv_4_valid cv_5_valid
+## accuracy                  0.935168   0.922854
+## auc                       0.944342   0.947410
+## err                       0.064832   0.077146
+## err_count               179.000000 213.000000
+## f0point5                  0.737066   0.663834
+## f1                        0.699160   0.701262
+## f2                        0.664962   0.743163
+## lift_top_group            8.242703   7.632132
+## logloss                   0.174023   0.174674
+## max_per_class_error       0.356037   0.226006
+## mcc                       0.666204   0.661269
+## mean_per_class_accuracy   0.808856   0.858285
+## mean_per_class_error      0.191144   0.141715
+## mse                       0.050735   0.051954
+## pr_auc                    0.749124   0.726857
+## precision                 0.764706   0.641026
+## r2                        0.508857   0.497059
+## recall                    0.643963   0.773994
+## rmse                      0.225245   0.227935
+## specificity               0.973749   0.942576</code></pre>
+<pre class="r"><code># Choose whatever model you want
+stacked_ensemble_h2o &lt;- h2o.loadModel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551&quot;)
+stacked_ensemble_h2o</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: gbm
+## Model ID:  GBM_1_AutoML_2_20220323_00551 
+## Model Summary: 
+##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+## 1              85                       85               80303         6
+##   max_depth mean_depth min_leaves max_leaves mean_leaves
+## 1        15   14.34118          9         85    70.25883
+## 
+## 
+## H2OBinomialMetrics: gbm
+## ** Reported on training data. **
+## 
+## MSE:  0.0364535
+## RMSE:  0.190928
+## LogLoss:  0.1256174
+## Mean Per-Class Error:  0.101465
+## AUC:  0.9797668
+## AUCPR:  0.8748105
+## Gini:  0.9595336
+## R^2:  0.6513665
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error        Rate
+## No     11750  419 0.034432  =419/12169
+## Yes      276 1362 0.168498   =276/1638
+## Totals 12026 1781 0.050337  =695/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.356217     0.796724 193
+## 2                       max f2  0.194368     0.848793 253
+## 3                 max f0point5  0.568944     0.823557 128
+## 4                 max accuracy  0.458060     0.952633 160
+## 5                max precision  0.970383     1.000000   0
+## 6                   max recall  0.019776     1.000000 362
+## 7              max specificity  0.970383     1.000000   0
+## 8             max absolute_mcc  0.356217     0.768933 193
+## 9   max min_per_class_accuracy  0.194368     0.927350 253
+## 10 max mean_per_class_accuracy  0.141054     0.931094 275
+## 11                     max tns  0.970383 12169.000000   0
+## 12                     max fns  0.970383  1636.000000   0
+## 13                     max fps  0.000505 12169.000000 399
+## 14                     max tps  0.019776  1638.000000 362
+## 15                     max tnr  0.970383     1.000000   0
+## 16                     max fnr  0.970383     0.998779   0
+## 17                     max fpr  0.000505     1.000000 399
+## 18                     max tpr  0.019776     1.000000 362
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on validation data. **
+## 
+## MSE:  0.05090462
+## RMSE:  0.2256205
+## LogLoss:  0.170807
+## Mean Per-Class Error:  0.140005
+## AUC:  0.9500766
+## AUCPR:  0.7456298
+## Gini:  0.9001533
+## R^2:  0.5141952
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     1989 115 0.054658  =115/2104
+## Yes      64 220 0.225352    =64/284
+## Totals 2053 335 0.074958  =179/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.285752    0.710824 190
+## 2                       max f2  0.174324    0.788804 231
+## 3                 max f0point5  0.583336    0.729572 104
+## 4                 max accuracy  0.420489    0.932161 148
+## 5                max precision  0.971121    1.000000   0
+## 6                   max recall  0.001351    1.000000 396
+## 7              max specificity  0.971121    1.000000   0
+## 8             max absolute_mcc  0.285752    0.671107 190
+## 9   max min_per_class_accuracy  0.143462    0.894011 247
+## 10 max mean_per_class_accuracy  0.118796    0.897148 261
+## 11                     max tns  0.971121 2104.000000   0
+## 12                     max fns  0.971121  283.000000   0
+## 13                     max fps  0.000491 2104.000000 399
+## 14                     max tps  0.001351  284.000000 396
+## 15                     max tnr  0.971121    1.000000   0
+## 16                     max fnr  0.971121    0.996479   0
+## 17                     max fpr  0.000491    1.000000 399
+## 18                     max tpr  0.001351    1.000000 396
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.05133987
+## RMSE:  0.226583
+## LogLoss:  0.1719745
+## Mean Per-Class Error:  0.1567029
+## AUC:  0.9499896
+## AUCPR:  0.7438776
+## Gini:  0.8999792
+## R^2:  0.5089965
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11572  597 0.049059   =597/12169
+## Yes      433 1205 0.264347    =433/1638
+## Totals 12005 1802 0.074600  =1030/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.352409     0.700581 198
+## 2                       max f2  0.158466     0.778760 268
+## 3                 max f0point5  0.527210     0.720817 140
+## 4                 max accuracy  0.479413     0.930470 157
+## 5                max precision  0.975611     1.000000   0
+## 6                   max recall  0.005206     1.000000 387
+## 7              max specificity  0.975611     1.000000   0
+## 8             max absolute_mcc  0.274690     0.659421 224
+## 9   max min_per_class_accuracy  0.131267     0.886447 282
+## 10 max mean_per_class_accuracy  0.134664     0.887696 280
+## 11                     max tns  0.975611 12169.000000   0
+## 12                     max fns  0.975611  1637.000000   0
+## 13                     max fps  0.000530 12169.000000 399
+## 14                     max tps  0.005206  1638.000000 387
+## 15                     max tnr  0.975611     1.000000   0
+## 16                     max fnr  0.975611     0.999389   0
+## 17                     max fpr  0.000530     1.000000 399
+## 18                     max tpr  0.005206     1.000000 387
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## Cross-Validation Metrics Summary: 
+##                               mean        sd cv_1_valid cv_2_valid cv_3_valid
+## accuracy                  0.924892  0.011586   0.931933   0.928675   0.905831
+## auc                       0.949670  0.005616   0.958651   0.951323   0.946623
+## err                       0.075108  0.011586   0.068067   0.071325   0.094169
+## err_count               207.400000 31.973427 188.000000 197.000000 260.000000
+## f0point5                  0.682207  0.053359   0.730020   0.673244   0.606872
+## f1                        0.706197  0.027671   0.751979   0.701967   0.676617
+## f2                        0.736229  0.043186   0.775299   0.733249   0.764474
+## lift_top_group            7.793544  0.600202   6.850198   8.354118   7.888571
+## logloss                   0.172039  0.007086   0.168650   0.161997   0.180851
+## max_per_class_error       0.239551  0.071760   0.208333   0.244300   0.163077
+## mcc                       0.669025  0.027157   0.713853   0.663855   0.639945
+## mean_per_class_accuracy   0.853686  0.026810   0.872311   0.853003   0.875974
+## mean_per_class_error      0.146314  0.026810   0.127689   0.146997   0.124026
+## mse                       0.051377  0.002836   0.050939   0.047684   0.055571
+## pr_auc                    0.742312  0.029364   0.777912   0.756518   0.701147
+## precision                 0.669006  0.075127   0.716080   0.655367   0.567850
+## r2                        0.507760  0.031141   0.550610   0.517352   0.464922
+## recall                    0.760449  0.071760   0.791667   0.755700   0.836923
+## rmse                      0.226596  0.006238   0.225697   0.218367   0.235734
+## specificity               0.946922  0.021236   0.952956   0.950306   0.915025
+##                         cv_4_valid cv_5_valid
+## accuracy                  0.935168   0.922854
+## auc                       0.944342   0.947410
+## err                       0.064832   0.077146
+## err_count               179.000000 213.000000
+## f0point5                  0.737066   0.663834
+## f1                        0.699160   0.701262
+## f2                        0.664962   0.743163
+## lift_top_group            8.242703   7.632132
+## logloss                   0.174023   0.174674
+## max_per_class_error       0.356037   0.226006
+## mcc                       0.666204   0.661269
+## mean_per_class_accuracy   0.808856   0.858285
+## mean_per_class_error      0.191144   0.141715
+## mse                       0.050735   0.051954
+## pr_auc                    0.749124   0.726857
+## precision                 0.764706   0.641026
+## r2                        0.508857   0.497059
+## recall                    0.643963   0.773994
+## rmse                      0.225245   0.227935
+## specificity               0.973749   0.942576</code></pre>
+<pre class="r"><code>predictions &lt;- h2o.predict(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>typeof(predictions)</code></pre>
+<pre><code>## [1] &quot;environment&quot;</code></pre>
+<pre class="r"><code>predictions_tbl &lt;- predictions %&gt;% as_tibble()%&gt;% bind_cols(test_tbl)
+
+##Challenge - Performance measures
+
+# 1. Leaderboard visualization
+
+automl_models_h2o@leaderboard %&gt;% 
+  as_tibble() %&gt;% 
+  select(-c(mean_per_class_error, rmse, mse))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["model_id"],"name":[1],"type":["chr"],"align":["left"]},{"label":["auc"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["logloss"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["aucpr"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"StackedEnsemble_BestOfFamily_2_AutoML_42_20220328_04232","2":"0.9420680","3":"0.1854292","4":"0.7300485"},{"1":"StackedEnsemble_BestOfFamily_1_AutoML_42_20220328_04232","2":"0.9419437","3":"0.1848372","4":"0.7284463"},{"1":"GBM_1_AutoML_42_20220328_04232","2":"0.9419085","3":"0.1844944","4":"0.7274577"},{"1":"GBM_3_AutoML_42_20220328_04232","2":"0.9217493","3":"0.2793762","4":"0.6555274"},{"1":"DRF_1_AutoML_42_20220328_04232","2":"0.8946082","3":"0.2674981","4":"0.6022665"},{"1":"GBM_4_AutoML_42_20220328_04232","2":"0.8944377","3":"0.2982524","4":"0.6303121"},{"1":"GBM_2_AutoML_42_20220328_04232","2":"0.8674579","3":"0.2981059","4":"0.5150100"},{"1":"GLM_1_AutoML_42_20220328_04232","2":"0.7751776","3":"0.3244202","4":"0.3094493"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Visualize the H2O leaderboard to help with model selection
+data_transformed_tbl &lt;- automl_models_h2o@leaderboard %&gt;%
+  as_tibble() %&gt;%
+  select(-c(aucpr, mean_per_class_error, rmse, mse)) %&gt;% 
+  mutate(model_type = str_extract(model_id, &quot;[^_]+&quot;)) %&gt;%
+  slice(1:15) %&gt;% 
+  rownames_to_column(var = &quot;rowname&quot;) %&gt;%
+  # Visually this step will not change anything
+  # It reorders the factors under the hood
+  mutate(
+    model_id   = as_factor(model_id) %&gt;% reorder(auc),
+    model_type = as.factor(model_type)
+  ) %&gt;% 
+  pivot_longer(cols = -c(model_id, model_type, rowname), 
+               names_to = &quot;key&quot;, 
+               values_to = &quot;value&quot;, 
+               names_transform = list(key = forcats::fct_inorder)
+  ) %&gt;% 
+  mutate(model_id = paste0(rowname, &quot;. &quot;, model_id) %&gt;% as_factor() %&gt;% fct_rev())
+
+data_transformed_tbl %&gt;%
+  ggplot(aes(value, model_id, color = model_type)) +
+  geom_point(size = 3) +
+  geom_label(aes(label = round(value, 2), hjust = &quot;inward&quot;)) +
+  
+  # Facet to break out logloss and auc
+  facet_wrap(~ key, scales = &quot;free_x&quot;) +
+  labs(title = &quot;Leaderboard Metrics&quot;,
+       subtitle = paste0(&quot;Ordered by: &quot;, &quot;auc&quot;),
+       y = &quot;Model Postion, Model ID&quot;, x = &quot;&quot;) + 
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre class="r"><code># plot_h2o_leaderboard &lt;- function(h2o_leaderboard, order_by = c(&quot;auc&quot;, &quot;logloss&quot;), 
+#                                  n_max = 20, size = 4, include_lbl = TRUE) { ... }
+
+# 2. Tune a model with grid search
+
+predict_backorders_h2o &lt;- h2o.loadModel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551&quot;)
+
+predict_backorders_h2o </code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: gbm
+## Model ID:  GBM_1_AutoML_2_20220323_00551 
+## Model Summary: 
+##   number_of_trees number_of_internal_trees model_size_in_bytes min_depth
+## 1              85                       85               80303         6
+##   max_depth mean_depth min_leaves max_leaves mean_leaves
+## 1        15   14.34118          9         85    70.25883
+## 
+## 
+## H2OBinomialMetrics: gbm
+## ** Reported on training data. **
+## 
+## MSE:  0.0364535
+## RMSE:  0.190928
+## LogLoss:  0.1256174
+## Mean Per-Class Error:  0.101465
+## AUC:  0.9797668
+## AUCPR:  0.8748105
+## Gini:  0.9595336
+## R^2:  0.6513665
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error        Rate
+## No     11750  419 0.034432  =419/12169
+## Yes      276 1362 0.168498   =276/1638
+## Totals 12026 1781 0.050337  =695/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.356217     0.796724 193
+## 2                       max f2  0.194368     0.848793 253
+## 3                 max f0point5  0.568944     0.823557 128
+## 4                 max accuracy  0.458060     0.952633 160
+## 5                max precision  0.970383     1.000000   0
+## 6                   max recall  0.019776     1.000000 362
+## 7              max specificity  0.970383     1.000000   0
+## 8             max absolute_mcc  0.356217     0.768933 193
+## 9   max min_per_class_accuracy  0.194368     0.927350 253
+## 10 max mean_per_class_accuracy  0.141054     0.931094 275
+## 11                     max tns  0.970383 12169.000000   0
+## 12                     max fns  0.970383  1636.000000   0
+## 13                     max fps  0.000505 12169.000000 399
+## 14                     max tps  0.019776  1638.000000 362
+## 15                     max tnr  0.970383     1.000000   0
+## 16                     max fnr  0.970383     0.998779   0
+## 17                     max fpr  0.000505     1.000000 399
+## 18                     max tpr  0.019776     1.000000 362
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on validation data. **
+## 
+## MSE:  0.05090462
+## RMSE:  0.2256205
+## LogLoss:  0.170807
+## Mean Per-Class Error:  0.140005
+## AUC:  0.9500766
+## AUCPR:  0.7456298
+## Gini:  0.9001533
+## R^2:  0.5141952
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     1989 115 0.054658  =115/2104
+## Yes      64 220 0.225352    =64/284
+## Totals 2053 335 0.074958  =179/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.285752    0.710824 190
+## 2                       max f2  0.174324    0.788804 231
+## 3                 max f0point5  0.583336    0.729572 104
+## 4                 max accuracy  0.420489    0.932161 148
+## 5                max precision  0.971121    1.000000   0
+## 6                   max recall  0.001351    1.000000 396
+## 7              max specificity  0.971121    1.000000   0
+## 8             max absolute_mcc  0.285752    0.671107 190
+## 9   max min_per_class_accuracy  0.143462    0.894011 247
+## 10 max mean_per_class_accuracy  0.118796    0.897148 261
+## 11                     max tns  0.971121 2104.000000   0
+## 12                     max fns  0.971121  283.000000   0
+## 13                     max fps  0.000491 2104.000000 399
+## 14                     max tps  0.001351  284.000000 396
+## 15                     max tnr  0.971121    1.000000   0
+## 16                     max fnr  0.971121    0.996479   0
+## 17                     max fpr  0.000491    1.000000 399
+## 18                     max tpr  0.001351    1.000000 396
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: gbm
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.05133987
+## RMSE:  0.226583
+## LogLoss:  0.1719745
+## Mean Per-Class Error:  0.1567029
+## AUC:  0.9499896
+## AUCPR:  0.7438776
+## Gini:  0.8999792
+## R^2:  0.5089965
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11572  597 0.049059   =597/12169
+## Yes      433 1205 0.264347    =433/1638
+## Totals 12005 1802 0.074600  =1030/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.352409     0.700581 198
+## 2                       max f2  0.158466     0.778760 268
+## 3                 max f0point5  0.527210     0.720817 140
+## 4                 max accuracy  0.479413     0.930470 157
+## 5                max precision  0.975611     1.000000   0
+## 6                   max recall  0.005206     1.000000 387
+## 7              max specificity  0.975611     1.000000   0
+## 8             max absolute_mcc  0.274690     0.659421 224
+## 9   max min_per_class_accuracy  0.131267     0.886447 282
+## 10 max mean_per_class_accuracy  0.134664     0.887696 280
+## 11                     max tns  0.975611 12169.000000   0
+## 12                     max fns  0.975611  1637.000000   0
+## 13                     max fps  0.000530 12169.000000 399
+## 14                     max tps  0.005206  1638.000000 387
+## 15                     max tnr  0.975611     1.000000   0
+## 16                     max fnr  0.975611     0.999389   0
+## 17                     max fpr  0.000530     1.000000 399
+## 18                     max tpr  0.005206     1.000000 387
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## Cross-Validation Metrics Summary: 
+##                               mean        sd cv_1_valid cv_2_valid cv_3_valid
+## accuracy                  0.924892  0.011586   0.931933   0.928675   0.905831
+## auc                       0.949670  0.005616   0.958651   0.951323   0.946623
+## err                       0.075108  0.011586   0.068067   0.071325   0.094169
+## err_count               207.400000 31.973427 188.000000 197.000000 260.000000
+## f0point5                  0.682207  0.053359   0.730020   0.673244   0.606872
+## f1                        0.706197  0.027671   0.751979   0.701967   0.676617
+## f2                        0.736229  0.043186   0.775299   0.733249   0.764474
+## lift_top_group            7.793544  0.600202   6.850198   8.354118   7.888571
+## logloss                   0.172039  0.007086   0.168650   0.161997   0.180851
+## max_per_class_error       0.239551  0.071760   0.208333   0.244300   0.163077
+## mcc                       0.669025  0.027157   0.713853   0.663855   0.639945
+## mean_per_class_accuracy   0.853686  0.026810   0.872311   0.853003   0.875974
+## mean_per_class_error      0.146314  0.026810   0.127689   0.146997   0.124026
+## mse                       0.051377  0.002836   0.050939   0.047684   0.055571
+## pr_auc                    0.742312  0.029364   0.777912   0.756518   0.701147
+## precision                 0.669006  0.075127   0.716080   0.655367   0.567850
+## r2                        0.507760  0.031141   0.550610   0.517352   0.464922
+## recall                    0.760449  0.071760   0.791667   0.755700   0.836923
+## rmse                      0.226596  0.006238   0.225697   0.218367   0.235734
+## specificity               0.946922  0.021236   0.952956   0.950306   0.915025
+##                         cv_4_valid cv_5_valid
+## accuracy                  0.935168   0.922854
+## auc                       0.944342   0.947410
+## err                       0.064832   0.077146
+## err_count               179.000000 213.000000
+## f0point5                  0.737066   0.663834
+## f1                        0.699160   0.701262
+## f2                        0.664962   0.743163
+## lift_top_group            8.242703   7.632132
+## logloss                   0.174023   0.174674
+## max_per_class_error       0.356037   0.226006
+## mcc                       0.666204   0.661269
+## mean_per_class_accuracy   0.808856   0.858285
+## mean_per_class_error      0.191144   0.141715
+## mse                       0.050735   0.051954
+## pr_auc                    0.749124   0.726857
+## precision                 0.764706   0.641026
+## r2                        0.508857   0.497059
+## recall                    0.643963   0.773994
+## rmse                      0.225245   0.227935
+## specificity               0.973749   0.942576</code></pre>
+<pre class="r"><code>#h2o.performance(predict_backorders_h2o, newdata = as.h2o(test_tbl)) 
+
+
+predict_backorders_grid_01 &lt;- h2o.grid(
+  algorithm = &quot;gbm&quot;,
+  
+  # I just use the same as the object
+  grid_id = &quot;predict_backorders_grid_01&quot;,
+
+  # predictor and response variables
+  x = x,
+  y = y,
+  
+  # training and validation frame and crossfold validation
+  training_frame   = train_h2o,
+  validation_frame = valid_h2o,
+  nfolds = 5,
+  
+  hyper_params = list(ntrees= c(50,20,15) 
+    
+  )
+)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>predict_backorders_grid_01 </code></pre>
+<pre><code>## H2O Grid Details
+## ================
+## 
+## Grid ID: predict_backorders_grid_01 
+## Used hyper parameters: 
+##   -  ntrees 
+## Number of models: 15 
+## Number of failed models: 0 
+## 
+## Hyper-Parameter Search Summary: ordered by increasing logloss
+##      ntrees                           model_ids logloss
+## 1  50.00000  predict_backorders_grid_01_model_1 0.19339
+## 2  50.00000  predict_backorders_grid_01_model_7 0.19600
+## 3  50.00000 predict_backorders_grid_01_model_13 0.19617
+## 4  50.00000 predict_backorders_grid_01_model_10 0.19715
+## 5  50.00000  predict_backorders_grid_01_model_4 0.19805
+## 6  20.00000  predict_backorders_grid_01_model_8 0.23439
+## 7  20.00000 predict_backorders_grid_01_model_11 0.23480
+## 8  20.00000  predict_backorders_grid_01_model_2 0.23540
+## 9  20.00000  predict_backorders_grid_01_model_5 0.23792
+## 10 20.00000 predict_backorders_grid_01_model_14 0.23966
+## 11 15.00000 predict_backorders_grid_01_model_15 0.24954
+## 12 15.00000  predict_backorders_grid_01_model_6 0.24968
+## 13 15.00000  predict_backorders_grid_01_model_9 0.25069
+## 14 15.00000  predict_backorders_grid_01_model_3 0.25078
+## 15 15.00000 predict_backorders_grid_01_model_12 0.25163</code></pre>
+<pre class="r"><code>h2o.getGrid(grid_id = &quot;predict_backorders_grid_01&quot;, sort_by = &quot;auc&quot;, decreasing = TRUE)</code></pre>
+<pre><code>## H2O Grid Details
+## ================
+## 
+## Grid ID: predict_backorders_grid_01 
+## Used hyper parameters: 
+##   -  ntrees 
+## Number of models: 15 
+## Number of failed models: 0 
+## 
+## Hyper-Parameter Search Summary: ordered by decreasing auc
+##      ntrees                           model_ids     auc
+## 1  50.00000  predict_backorders_grid_01_model_1 0.93915
+## 2  50.00000  predict_backorders_grid_01_model_4 0.93661
+## 3  50.00000  predict_backorders_grid_01_model_7 0.93653
+## 4  50.00000 predict_backorders_grid_01_model_10 0.93642
+## 5  50.00000 predict_backorders_grid_01_model_13 0.93631
+## 6  20.00000  predict_backorders_grid_01_model_8 0.91883
+## 7  20.00000 predict_backorders_grid_01_model_11 0.91829
+## 8  20.00000  predict_backorders_grid_01_model_5 0.91553
+## 9  20.00000  predict_backorders_grid_01_model_2 0.91403
+## 10 20.00000 predict_backorders_grid_01_model_14 0.91006
+## 11 15.00000  predict_backorders_grid_01_model_3 0.90962
+## 12 15.00000 predict_backorders_grid_01_model_12 0.90869
+## 13 15.00000 predict_backorders_grid_01_model_15 0.90860
+## 14 15.00000  predict_backorders_grid_01_model_6 0.90852
+## 15 15.00000  predict_backorders_grid_01_model_9 0.90816</code></pre>
+<pre class="r"><code>predict_backorders_grid_01_model_1 &lt;- h2o.getModel(&quot;GBM_1_AutoML_2_20220323_00551&quot;)
+predict_backorders_grid_01_model_1 %&gt;% h2o.auc(train = T, valid = T, xval = T)</code></pre>
+<pre><code>##     train     valid      xval 
+## 0.9797668 0.9500766 0.9499896</code></pre>
+<pre class="r"><code># predict_backorders_grid_01_model_1 %&gt;%
+#   h2o.performance(newdata = as.h2o(test_tbl))
+
+stacked_ensemble_h2o &lt;- h2o.loadModel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551&quot;)
+predict_backorders_h2o     &lt;- h2o.loadModel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551&quot;)
+gbm_h2o              &lt;- h2o.loadModel(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_3_AutoML_2_20220323_00551&quot;)
+
+performance_h2o &lt;- h2o.performance(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>typeof(performance_h2o)</code></pre>
+<pre><code>## [1] &quot;S4&quot;</code></pre>
+<pre class="r"><code>performance_h2o %&gt;% slotNames()</code></pre>
+<pre><code>## [1] &quot;algorithm&quot; &quot;on_train&quot;  &quot;on_valid&quot;  &quot;on_xval&quot;   &quot;metrics&quot;</code></pre>
+<pre class="r"><code># We are focusing on the slot metrics. This slot contains all possible metrics
+performance_h2o@metrics</code></pre>
+<pre><code>## $model
+## $model$`__meta`
+## $model$`__meta`$schema_version
+## [1] 3
+## 
+## $model$`__meta`$schema_name
+## [1] &quot;ModelKeyV3&quot;
+## 
+## $model$`__meta`$schema_type
+## [1] &quot;Key&lt;Model&gt;&quot;
+## 
+## 
+## $model$name
+## [1] &quot;StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551&quot;
+## 
+## $model$type
+## [1] &quot;Key&lt;Model&gt;&quot;
+## 
+## $model$URL
+## [1] &quot;/3/Models/StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551&quot;
+## 
+## 
+## $model_checksum
+## [1] &quot;351716864345628016&quot;
+## 
+## $frame
+## $frame$name
+## [1] &quot;test_tbl_sid_a00c_119&quot;
+## 
+## 
+## $frame_checksum
+## [1] &quot;3640202731845511794&quot;
+## 
+## $description
+## NULL
+## 
+## $scoring_time
+## [1] 1.648387e+12
+## 
+## $predictions
+## NULL
+## 
+## $MSE
+## [1] 0.05474414
+## 
+## $RMSE
+## [1] 0.2339746
+## 
+## $nobs
+## [1] 2858
+## 
+## $custom_metric_name
+## NULL
+## 
+## $custom_metric_value
+## [1] 0
+## 
+## $r2
+## [1] 0.4829431
+## 
+## $logloss
+## [1] 0.1821956
+## 
+## $AUC
+## [1] 0.9437135
+## 
+## $pr_auc
+## [1] 0.7269926
+## 
+## $Gini
+## [1] 0.8874269
+## 
+## $mean_per_class_error
+## [1] 0.1702096
+## 
+## $domain
+## [1] &quot;No&quot;  &quot;Yes&quot;
+## 
+## $cm
+## $cm$`__meta`
+## $cm$`__meta`$schema_version
+## [1] 3
+## 
+## $cm$`__meta`$schema_name
+## [1] &quot;ConfusionMatrixV3&quot;
+## 
+## $cm$`__meta`$schema_type
+## [1] &quot;ConfusionMatrix&quot;
+## 
+## 
+## $cm$table
+## Confusion Matrix: Row labels: Actual class; Column labels: Predicted class
+##          No Yes  Error          Rate
+## No     2389 125 0.0497 = 125 / 2,514
+## Yes     100 244 0.2907 =   100 / 344
+## Totals 2489 369 0.0787 = 225 / 2,858
+## 
+## 
+## $thresholds_and_metric_scores
+## Metrics for Thresholds: Binomial metrics as a function of classification thresholds
+##   threshold       f1       f2 f0point5 accuracy precision   recall specificity
+## 1  0.952795 0.011561 0.007257 0.028409 0.880336  1.000000 0.005814    1.000000
+## 2  0.948971 0.011527 0.007252 0.028090 0.879986  0.666667 0.005814    0.999602
+## 3  0.944818 0.011494 0.007246 0.027778 0.879636  0.500000 0.005814    0.999204
+## 4  0.940368 0.022857 0.014472 0.054348 0.880336  0.666667 0.011628    0.999204
+## 5  0.939188 0.039660 0.025271 0.092105 0.881386  0.777778 0.020349    0.999204
+##   absolute_mcc min_per_class_accuracy mean_per_class_accuracy  tns fns fps tps
+## 1     0.071538               0.005814                0.502907 2514 342   0   2
+## 2     0.054424               0.005814                0.502708 2513 342   1   2
+## 3     0.043679               0.005814                0.502509 2512 342   2   2
+## 4     0.077008               0.011628                0.505416 2512 340   2   4
+## 5     0.113557               0.020349                0.509777 2512 337   2   7
+##        tnr      fnr      fpr      tpr idx
+## 1 1.000000 0.994186 0.000000 0.005814   0
+## 2 0.999602 0.994186 0.000398 0.005814   1
+## 3 0.999204 0.994186 0.000796 0.005814   2
+## 4 0.999204 0.988372 0.000796 0.011628   3
+## 5 0.999204 0.979651 0.000796 0.020349   4
+## 
+## ---
+##     threshold       f1       f2 f0point5 accuracy precision   recall
+## 395  0.001244 0.235940 0.435664 0.161776 0.220434  0.133748 1.000000
+## 396  0.001087 0.234253 0.433359 0.160508 0.213086  0.132665 1.000000
+## 397  0.000897 0.228799 0.425848 0.156421 0.188593  0.129178 1.000000
+## 398  0.000700 0.225426 0.421156 0.153901 0.172848  0.127031 1.000000
+## 399  0.000533 0.222150 0.416566 0.151462 0.157103  0.124955 1.000000
+## 400  0.000322 0.214866 0.406235 0.146060 0.120364  0.120364 1.000000
+##     specificity absolute_mcc min_per_class_accuracy mean_per_class_accuracy tns
+## 395    0.113763     0.123351               0.113763                0.556881 286
+## 396    0.105410     0.118255               0.105410                0.552705 265
+## 397    0.077566     0.100099               0.077566                0.538783 195
+## 398    0.059666     0.087060               0.059666                0.529833 150
+## 399    0.041766     0.072242               0.041766                0.520883 105
+## 400    0.000000     0.000000               0.000000                0.500000   0
+##     fns  fps tps      tnr      fnr      fpr      tpr idx
+## 395   0 2228 344 0.113763 0.000000 0.886237 1.000000 394
+## 396   0 2249 344 0.105410 0.000000 0.894590 1.000000 395
+## 397   0 2319 344 0.077566 0.000000 0.922434 1.000000 396
+## 398   0 2364 344 0.059666 0.000000 0.940334 1.000000 397
+## 399   0 2409 344 0.041766 0.000000 0.958234 1.000000 398
+## 400   0 2514 344 0.000000 0.000000 1.000000 1.000000 399
+## 
+## $max_criteria_and_metric_scores
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.355560    0.684432 182
+## 2                       max f2  0.130513    0.772774 268
+## 3                 max f0point5  0.711511    0.700389  81
+## 4                 max accuracy  0.453412    0.924773 152
+## 5                max precision  0.952795    1.000000   0
+## 6                   max recall  0.001676    1.000000 392
+## 7              max specificity  0.952795    1.000000   0
+## 8             max absolute_mcc  0.387819    0.640687 173
+## 9   max min_per_class_accuracy  0.120394    0.883721 274
+## 10 max mean_per_class_accuracy  0.116177    0.884444 276
+## 11                     max tns  0.952795 2514.000000   0
+## 12                     max fns  0.952795  342.000000   0
+## 13                     max fps  0.000322 2514.000000 399
+## 14                     max tps  0.001676  344.000000 392
+## 15                     max tnr  0.952795    1.000000   0
+## 16                     max fnr  0.952795    0.994186   0
+## 17                     max fpr  0.000322    1.000000 399
+## 18                     max tpr  0.001676    1.000000 392
+## 
+## $gains_lift_table
+## Gains/Lift Table: Avg response rate: 12.04 %, avg score: 11.75 %
+##    group cumulative_data_fraction lower_threshold     lift cumulative_lift
+## 1      1               0.01014696        0.908502 7.735164        7.735164
+## 2      2               0.02029391        0.877377 8.021652        7.878408
+## 3      3               0.03009097        0.848413 6.824543        7.535289
+## 4      4               0.04023793        0.803584 6.302727        7.224469
+## 5      5               0.05003499        0.766631 6.527824        7.088063
+## 6      6               0.10006998        0.496516 4.938405        6.013234
+## 7      7               0.15010497        0.259886 3.079241        5.035236
+## 8      8               0.20013996        0.131968 2.323955        4.357416
+## 9      9               0.30020994        0.045262 0.726236        3.147023
+## 10    10               0.39993002        0.021458 0.204060        2.413213
+## 11    11               0.50000000        0.011459 0.174297        1.965116
+## 12    12               0.60006998        0.006370 0.087148        1.651939
+## 13    13               0.69979006        0.004065 0.029151        1.420692
+## 14    14               0.79986004        0.002265 0.029049        1.246584
+## 15    15               0.89993002        0.001114 0.029049        1.111198
+## 16    16               1.00000000        0.000132 0.000000        1.000000
+##    response_rate    score cumulative_response_rate cumulative_score
+## 1       0.931034 0.927833                 0.931034         0.927833
+## 2       0.965517 0.893648                 0.948276         0.910740
+## 3       0.821429 0.863075                 0.906977         0.895221
+## 4       0.758621 0.825925                 0.869565         0.877747
+## 5       0.785714 0.786483                 0.853147         0.859877
+## 6       0.594406 0.635770                 0.723776         0.747824
+## 7       0.370629 0.372278                 0.606061         0.622642
+## 8       0.279720 0.188584                 0.524476         0.514127
+## 9       0.087413 0.078986                 0.378788         0.369080
+## 10      0.024561 0.031479                 0.290464         0.284902
+## 11      0.020979 0.016045                 0.236529         0.231093
+## 12      0.010490 0.008604                 0.198834         0.193990
+## 13      0.003509 0.005130                 0.171000         0.167077
+## 14      0.003497 0.003060                 0.150044         0.146557
+## 15      0.003497 0.001681                 0.133748         0.130447
+## 16      0.000000 0.000606                 0.120364         0.117454
+##    capture_rate cumulative_capture_rate        gain cumulative_gain
+## 1      0.078488                0.078488  673.516439      673.516439
+## 2      0.081395                0.159884  702.165196      687.840818
+## 3      0.066860                0.226744  582.454319      653.528935
+## 4      0.063953                0.290698  530.272654      622.446916
+## 5      0.063953                0.354651  552.782392      608.806310
+## 6      0.247093                0.601744  393.840462      501.323386
+## 7      0.154070                0.755814  207.924053      403.523608
+## 8      0.116279                0.872093  132.395511      335.741584
+## 9      0.072674                0.944767  -27.376403      214.702255
+## 10     0.020349                0.965116  -79.594043      141.321288
+## 11     0.017442                0.982558  -82.570337       96.511628
+## 12     0.008721                0.991279  -91.285168       65.193911
+## 13     0.002907                0.994186  -97.084863       42.069186
+## 14     0.002907                0.997093  -97.095056       24.658437
+## 15     0.002907                1.000000  -97.095056       11.119751
+## 16     0.000000                1.000000 -100.000000        0.000000
+##    kolmogorov_smirnov
+## 1            0.077693
+## 2            0.158690
+## 3            0.223562
+## 4            0.284731
+## 5            0.346298
+## 6            0.570320
+## 7            0.688590
+## 8            0.763899
+## 9            0.732755
+## 10           0.642523
+## 11           0.548588
+## 12           0.444740
+## 13           0.334679
+## 14           0.224221
+## 15           0.113763
+## 16           0.000000
+## 
+## $residual_deviance
+## [1] 1041.43
+## 
+## $null_deviance
+## [1] 2101.565
+## 
+## $AIC
+## [1] 1049.43
+## 
+## $null_degrees_of_freedom
+## [1] 2857
+## 
+## $residual_degrees_of_freedom
+## [1] 2854</code></pre>
+<pre class="r"><code># 3. Visualize the trade of between the precision and the recall and the optimal threshold
+
+# Precision vs Recall Plot
+
+# This is on the test set
+performance_tbl &lt;- performance_h2o %&gt;%
+  h2o.metric() %&gt;%
+  as.tibble() 
+
+
+
+
+theme_new &lt;- theme(
+  legend.position  = &quot;bottom&quot;,
+  legend.key       = element_blank(),
+  panel.background = element_rect(fill   = &quot;transparent&quot;),
+  panel.border     = element_rect(color = &quot;black&quot;, fill = NA, size = 0.5),
+  panel.grid.major = element_line(color = &quot;grey&quot;, size = 0.333)
+) 
+
+performance_tbl %&gt;%
+  filter(f1 == max(f1))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["threshold"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["f1"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["f2"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["f0point5"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["accuracy"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["precision"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["recall"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["specificity"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["absolute_mcc"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["min_per_class_accuracy"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["mean_per_class_accuracy"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["tns"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["fns"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["fps"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["tps"],"name":[15],"type":["dbl"],"align":["right"]},{"label":["tnr"],"name":[16],"type":["dbl"],"align":["right"]},{"label":["fnr"],"name":[17],"type":["dbl"],"align":["right"]},{"label":["fpr"],"name":[18],"type":["dbl"],"align":["right"]},{"label":["tpr"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["idx"],"name":[20],"type":["int"],"align":["right"]}],"data":[{"1":"0.3555603","2":"0.684432","3":"0.6991404","4":"0.6703297","5":"0.9212736","6":"0.6612466","7":"0.7093023","8":"0.9502784","9":"0.6400357","10":"0.7093023","11":"0.8297904","12":"2389","13":"100","14":"125","15":"244","16":"0.9502784","17":"0.2906977","18":"0.04972156","19":"0.7093023","20":"182"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>performance_tbl %&gt;%
+  ggplot(aes(x = threshold)) +
+  geom_line(aes(y = precision), color = &quot;blue&quot;, size = 1) +
+  geom_line(aes(y = recall), color = &quot;red&quot;, size = 1) +
+  
+  # Insert line where precision and recall are harmonically optimized
+  geom_vline(xintercept = h2o.find_threshold_by_max_metric(performance_h2o, &quot;f1&quot;)) +
+  labs(title = &quot;Precision vs Recall&quot;, y = &quot;value&quot;) +
+  theme_new</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre class="r"><code># 4. ROC Plot
+
+path &lt;- &quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551&quot;
+
+load_model_performance_metrics &lt;- function(path, test_tbl) {
+  
+  model_h2o &lt;- h2o.loadModel(path)
+  perf_h2o  &lt;- h2o.performance(model_h2o, newdata = as.h2o(test_tbl)) 
+  
+  perf_h2o %&gt;%
+    h2o.metric() %&gt;%
+    as_tibble() %&gt;%
+    mutate(auc = h2o.auc(perf_h2o)) %&gt;%
+    select(tpr, fpr, auc)
+  
+}
+
+model_metrics_tbl &lt;- fs::dir_info(path = &quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/&quot;) %&gt;%
+  select(path) %&gt;%
+  mutate(metrics = map(path, load_model_performance_metrics, test_tbl)) %&gt;%
+  unnest(cols = metrics)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>model_metrics_tbl %&gt;%
+  mutate(
+    # Extract the model names
+    path = str_split(path, pattern = &quot;/&quot;, simplify = T)[,7] %&gt;% as_factor(),
+    auc  = auc %&gt;% round(3) %&gt;% as.character() %&gt;% as_factor()
+  ) %&gt;%
+  ggplot(aes(fpr, tpr, color = path, linetype = auc)) +
+  geom_line(size = 1) +
+  
+  # just for demonstration purposes
+  geom_abline(color = &quot;red&quot;, linetype = &quot;dotted&quot;) +
+  
+  theme_new +
+  theme(
+    legend.direction = &quot;vertical&quot;,
+  ) +
+  labs(
+    title = &quot;ROC Plot&quot;,
+    subtitle = &quot;Performance of 3 Top Performing Models&quot;
+  )</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-3.png" width="672" /></p>
+<pre class="r"><code># 5. Precision vs Recall Plot
+
+load_model_performance_metrics &lt;- function(path, test_tbl) {
+  
+  model_h2o &lt;- h2o.loadModel(path)
+  perf_h2o  &lt;- h2o.performance(model_h2o, newdata = as.h2o(test_tbl)) 
+  
+  perf_h2o %&gt;%
+    h2o.metric() %&gt;%
+    as_tibble() %&gt;%
+    mutate(auc = h2o.auc(perf_h2o)) %&gt;%
+    select(tpr, fpr, auc, precision, recall)
+  
+}
+
+model_metrics_tbl &lt;- fs::dir_info(path = &quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/&quot;) %&gt;%
+  select(path) %&gt;%
+  mutate(metrics = map(path, load_model_performance_metrics, test_tbl)) %&gt;%
+  unnest(cols = metrics)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>model_metrics_tbl %&gt;%
+  mutate(
+    path = str_split(path, pattern = &quot;/&quot;, simplify = T)[,7] %&gt;% as_factor(),
+    auc  = auc %&gt;% round(3) %&gt;% as.character() %&gt;% as_factor()
+  ) %&gt;%
+  ggplot(aes(recall, precision, color = path, linetype = auc)) +
+  geom_line(size = 1) +
+  theme_new + 
+  theme(
+    legend.direction = &quot;vertical&quot;,
+  ) +
+  labs(
+    title = &quot;Precision vs Recall Plot&quot;,
+    subtitle = &quot;Performance of 3 Top Performing Models&quot;
+  )</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-4.png" width="672" /></p>
+<pre class="r"><code># 6. Gain Plot
+ranked_predictions_backorders_tbl &lt;- predictions_tbl %&gt;%
+  bind_cols(test_tbl) %&gt;%
+  select(predict:Yes, went_on_backorder = went_on_backorder...49) %&gt;%
+  arrange(desc(Yes))
+
+ranked_predictions_backorders_tbl %&gt;%
+  mutate(ntile = ntile(Yes, n = 10)) %&gt;%
+  group_by(ntile) %&gt;%
+  summarise(
+    cases = n(),
+    responses = sum(went_on_backorder == &quot;Yes&quot;)
+  ) %&gt;%
+  arrange(desc(ntile))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["ntile"],"name":[1],"type":["int"],"align":["right"]},{"label":["cases"],"name":[2],"type":["int"],"align":["right"]},{"label":["responses"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"10","2":"285","3":"206"},{"1":"9","2":"285","3":"92"},{"1":"8","2":"286","3":"27"},{"1":"7","2":"286","3":"7"},{"1":"6","2":"286","3":"7"},{"1":"5","2":"286","3":"2"},{"1":"4","2":"286","3":"1"},{"1":"3","2":"286","3":"1"},{"1":"2","2":"286","3":"1"},{"1":"1","2":"286","3":"0"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>calculated_gain_lift_tbl &lt;- ranked_predictions_backorders_tbl %&gt;%
+  mutate(ntile = ntile(Yes, n = 10)) %&gt;%
+  group_by(ntile) %&gt;%
+  summarise(
+    cases = n(),
+    responses = sum(went_on_backorder == &quot;Yes&quot;)
+  ) %&gt;%
+  arrange(desc(ntile)) %&gt;%
+
+  mutate(group = row_number()) %&gt;%
+  select(group, cases, responses) %&gt;%
+  
+  mutate(
+    cumulative_responses = cumsum(responses),
+    pct_responses        = responses / sum(responses),
+    gain                 = cumsum(pct_responses),
+    cumulative_pct_cases = cumsum(cases) / sum(cases),
+    lift                 = gain / cumulative_pct_cases,
+    gain_baseline        = cumulative_pct_cases,
+    lift_baseline        = gain_baseline / cumulative_pct_cases
+  )
+#calculated_gain_lift_tbl 
+
+gain_lift_tbl &lt;- performance_h2o %&gt;%
+  h2o.gainsLift() %&gt;%
+  as.tibble()
+
+##Gain Chart
+
+gain_transformed_tbl &lt;- gain_lift_tbl %&gt;% 
+  select(group, cumulative_data_fraction, cumulative_capture_rate, cumulative_lift) %&gt;%
+  select(-contains(&quot;lift&quot;)) %&gt;%
+  mutate(baseline = cumulative_data_fraction) %&gt;%
+  rename(gain     = cumulative_capture_rate) %&gt;%
+  # prepare the data for the plotting (for the color and group aesthetics)
+  pivot_longer(cols = c(gain, baseline), values_to = &quot;value&quot;, names_to = &quot;key&quot;)
+
+gain_transformed_tbl %&gt;%
+  ggplot(aes(x = cumulative_data_fraction, y = value, color = key)) +
+  geom_line(size = 1.5) +
+  labs(
+    title = &quot;Gain Chart&quot;,
+    x = &quot;Cumulative Data Fraction&quot;,
+    y = &quot;Gain&quot;
+  ) +
+  theme_new</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-5.png" width="672" /></p>
+<pre class="r"><code># 7. Lift Plot
+
+lift_transformed_tbl &lt;- gain_lift_tbl %&gt;% 
+  select(group, cumulative_data_fraction, cumulative_capture_rate, cumulative_lift) %&gt;%
+  select(-contains(&quot;capture&quot;)) %&gt;%
+  mutate(baseline = 1) %&gt;%
+  rename(lift = cumulative_lift) %&gt;%
+  pivot_longer(cols = c(lift, baseline), values_to = &quot;value&quot;, names_to = &quot;key&quot;)
+
+lift_transformed_tbl %&gt;%
+  ggplot(aes(x = cumulative_data_fraction, y = value, color = key)) +
+  geom_line(size = 1.5) +
+  labs(
+    title = &quot;Lift Chart&quot;,
+    x = &quot;Cumulative Data Fraction&quot;,
+    y = &quot;Lift&quot;
+  ) +
+  theme_new</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-6.png" width="672" /></p>
+<pre class="r"><code>#8. Dashboard with cowplot
+
+library(cowplot)
+library(glue)
+library(ggplot2)
+# set values to test the function while building it
+h2o_leaderboard &lt;- automl_models_h2o@leaderboard
+newdata &lt;- test_tbl
+order_by &lt;- &quot;auc&quot;
+max_models &lt;- 4
+size &lt;- 1
+
+plot_h2o_performance &lt;- function(h2o_leaderboard, newdata, order_by = c(&quot;auc&quot;, &quot;logloss&quot;),
+                                 max_models = 3, size = 1.5) {
+  
+  # Inputs
+  
+  leaderboard_tbl &lt;- h2o_leaderboard %&gt;%
+    as_tibble() %&gt;%
+    slice(1:max_models)
+  
+  newdata_tbl &lt;- newdata %&gt;%
+    as_tibble()
+  
+  # Selecting the first, if nothing is provided
+  order_by      &lt;- tolower(order_by[[1]]) 
+  
+  # Convert string stored in a variable to column name (symbol)
+  order_by_expr &lt;- rlang::sym(order_by)
+  
+  # Turn of the progress bars ( opposite h2o.show_progress())
+  h2o.no_progress()
+  
+  # 1. Model metrics
+  
+  get_model_performance_metrics &lt;- function(model_id, test_tbl) {
+    
+    model_h2o &lt;- h2o.getModel(model_id)
+    perf_h2o  &lt;- h2o.performance(model_h2o, newdata = as.h2o(test_tbl))
+    
+    perf_h2o %&gt;%
+      h2o.metric() %&gt;%
+      as.tibble() %&gt;%
+      select(threshold, tpr, fpr, precision, recall)
+    
+  }
+  
+  model_metrics_tbl &lt;- leaderboard_tbl %&gt;%
+    mutate(metrics = map(model_id, get_model_performance_metrics, newdata_tbl)) %&gt;%
+    unnest(cols = metrics) %&gt;%
+    mutate(
+      model_id = as_factor(model_id) %&gt;% 
+        # programmatically reorder factors depending on order_by
+        fct_reorder(!! order_by_expr, 
+                    .desc = ifelse(order_by == &quot;auc&quot;, TRUE, FALSE)),
+      auc      = auc %&gt;% 
+        round(3) %&gt;% 
+        as.character() %&gt;% 
+        as_factor() %&gt;% 
+        fct_reorder(as.numeric(model_id)),
+      logloss  = logloss %&gt;% 
+        round(4) %&gt;% 
+        as.character() %&gt;% 
+        as_factor() %&gt;% 
+        fct_reorder(as.numeric(model_id))
+    )
+  
+  
+  # 1A. ROC Plot
+  
+  p1 &lt;- model_metrics_tbl %&gt;%
+    ggplot(aes(fpr, tpr, color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size) +
+    theme_new +
+    labs(title = &quot;ROC&quot;, x = &quot;FPR&quot;, y = &quot;TPR&quot;) +
+    theme(legend.direction = &quot;vertical&quot;) 
+  
+  
+  # 1B. Precision vs Recall
+  
+  p2 &lt;- model_metrics_tbl %&gt;%
+    ggplot(aes(recall, precision, color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size) +
+    theme_new +
+    labs(title = &quot;Precision Vs Recall&quot;, x = &quot;Recall&quot;, y = &quot;Precision&quot;) +
+    theme(legend.position = &quot;none&quot;) 
+  
+  
+  # 2. Gain / Lift
+  
+  get_gain_lift &lt;- function(model_id, test_tbl) {
+    
+    model_h2o &lt;- h2o.getModel(model_id)
+    perf_h2o  &lt;- h2o.performance(model_h2o, newdata = as.h2o(test_tbl)) 
+    
+    perf_h2o %&gt;%
+      h2o.gainsLift() %&gt;%
+      as.tibble() %&gt;%
+      select(group, cumulative_data_fraction, cumulative_capture_rate, cumulative_lift)
+    
+  }
+  
+  gain_lift_tbl &lt;- leaderboard_tbl %&gt;%
+    mutate(metrics = map(model_id, get_gain_lift, newdata_tbl)) %&gt;%
+    unnest(cols = metrics) %&gt;%
+    mutate(
+      model_id = as_factor(model_id) %&gt;% 
+        fct_reorder(!! order_by_expr, 
+                    .desc = ifelse(order_by == &quot;auc&quot;, TRUE, FALSE)),
+      auc  = auc %&gt;% 
+        round(3) %&gt;% 
+        as.character() %&gt;% 
+        as_factor() %&gt;% 
+        fct_reorder(as.numeric(model_id)),
+      logloss = logloss %&gt;% 
+        round(4) %&gt;% 
+        as.character() %&gt;% 
+        as_factor() %&gt;% 
+        fct_reorder(as.numeric(model_id))
+    ) %&gt;%
+    rename(
+      gain = cumulative_capture_rate,
+      lift = cumulative_lift
+    ) 
+  
+  # 2A. Gain Plot
+  
+  p3 &lt;- gain_lift_tbl %&gt;%
+    ggplot(aes(cumulative_data_fraction, gain, 
+               color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size,) +
+    geom_segment(x = 0, y = 0, xend = 1, yend = 1, 
+                 color = &quot;red&quot;, size = size, linetype = &quot;dotted&quot;) +
+    theme_new +
+    expand_limits(x = c(0, 1), y = c(0, 1)) +
+    labs(title = &quot;Gain&quot;,
+         x = &quot;Cumulative Data Fraction&quot;, y = &quot;Gain&quot;) +
+    theme(legend.position = &quot;none&quot;)
+  
+  # 2B. Lift Plot
+  
+  p4 &lt;- gain_lift_tbl %&gt;%
+    ggplot(aes(cumulative_data_fraction, lift, 
+               color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size) +
+    geom_segment(x = 0, y = 1, xend = 1, yend = 1, 
+                 color = &quot;red&quot;, size = size, linetype = &quot;dotted&quot;) +
+    theme_new +
+    expand_limits(x = c(0, 1), y = c(0, 1)) +
+    labs(title = &quot;Lift&quot;,
+         x = &quot;Cumulative Data Fraction&quot;, y = &quot;Lift&quot;) +
+    theme(legend.position = &quot;none&quot;) 
+  
+  
+  # Combine using cowplot
+  
+  # cowplot::get_legend extracts a legend from a ggplot object
+  p_legend &lt;- get_legend(p1)
+  # Remove legend from p1
+  p1 &lt;- p1 + theme(legend.position = &quot;none&quot;)
+  
+  # cowplot::plt_grid() combines multiple ggplots into a single cowplot object
+  p &lt;- cowplot::plot_grid(p1, p2, p3, p4, ncol = 2)
+  
+  # cowplot::ggdraw() sets up a drawing layer
+  p_title &lt;- ggdraw() + 
+    
+    # cowplot::draw_label() draws text on a ggdraw layer / ggplot object
+    draw_label(&quot;H2O Model Metrics&quot;, size = 18, fontface = &quot;bold&quot;, 
+               color = &quot;#2C3E50&quot;)
+  
+  p_subtitle &lt;- ggdraw() + 
+    draw_label(glue(&quot;Ordered by {toupper(order_by)}&quot;), size = 10,  
+               color = &quot;#2C3E50&quot;)
+  
+  # Combine everything
+  ret &lt;- plot_grid(p_title, p_subtitle, p, p_legend, 
+                   
+                   # Adjust the relative spacing, so that the legends always fits
+                   ncol = 1, rel_heights = c(0.05, 0.05, 1, 0.05 * max_models))
+  
+  h2o.show_progress()
+  
+  return(ret)
+  
+}
+
+automl_models_h2o@leaderboard %&gt;%
+  plot_h2o_performance(newdata = test_tbl, order_by = &quot;logloss&quot;, 
+                       size = 0.5, max_models = 4)</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-1-7.png" width="672" /></p>
+</div>
+<div id="business-case" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Business case</h2>
+<pre class="r"><code>library(dplyr)
+library(tidyverse)
+library(readxl)
+library(rsample)
+library(recipes)
+library(h2o)
+library(yardstick)
+library(broom)
+library(broom.mixed)
+
+h2o.init()</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         20 hours 54 minutes 
+##     H2O cluster timezone:       Europe/Berlin 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.36.0.3 
+##     H2O cluster version age:    1 month and 11 days  
+##     H2O cluster name:           H2O_started_from_R_bhava_drs368 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   0.10 GB 
+##     H2O cluster total cores:    8 
+##     H2O cluster allowed cores:  8 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     R Version:                  R version 4.1.1 (2021-08-10)</code></pre>
+<pre class="r"><code>automl_models_h2o@leaderboard %&gt;% 
+              as_tibble() %&gt;% 
+              select(-c(mean_per_class_error, rmse, mse))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["model_id"],"name":[1],"type":["chr"],"align":["left"]},{"label":["auc"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["logloss"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["aucpr"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"StackedEnsemble_BestOfFamily_2_AutoML_42_20220328_04232","2":"0.9420680","3":"0.1854292","4":"0.7300485"},{"1":"StackedEnsemble_BestOfFamily_1_AutoML_42_20220328_04232","2":"0.9419437","3":"0.1848372","4":"0.7284463"},{"1":"GBM_1_AutoML_42_20220328_04232","2":"0.9419085","3":"0.1844944","4":"0.7274577"},{"1":"GBM_3_AutoML_42_20220328_04232","2":"0.9217493","3":"0.2793762","4":"0.6555274"},{"1":"DRF_1_AutoML_42_20220328_04232","2":"0.8946082","3":"0.2674981","4":"0.6022665"},{"1":"GBM_4_AutoML_42_20220328_04232","2":"0.8944377","3":"0.2982524","4":"0.6303121"},{"1":"GBM_2_AutoML_42_20220328_04232","2":"0.8674579","3":"0.2981059","4":"0.5150100"},{"1":"GLM_1_AutoML_42_20220328_04232","2":"0.7751776","3":"0.3244202","4":"0.3094493"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Visualize the H2O leaderboard to help with model selection
+data_transformed_tbl &lt;- automl_models_h2o@leaderboard %&gt;%
+        as_tibble() %&gt;%
+        select(-c(aucpr, mean_per_class_error, rmse, mse)) %&gt;% 
+        mutate(model_type = str_extract(model_id, &quot;[^_]+&quot;)) %&gt;%
+        slice(1:15) %&gt;% 
+        rownames_to_column(var = &quot;rowname&quot;) %&gt;%
+        # Visually this step will not change anything
+        # It reorders the factors under the hood
+        mutate(
+          model_id   = as_factor(model_id) %&gt;% reorder(auc),
+          model_type = as.factor(model_type)
+          ) %&gt;% 
+          pivot_longer(cols = -c(model_id, model_type, rowname), 
+                       names_to = &quot;key&quot;, 
+                       values_to = &quot;value&quot;, 
+                       names_transform = list(key = forcats::fct_inorder)
+                       ) %&gt;% 
+        mutate(model_id = paste0(rowname, &quot;. &quot;, model_id) %&gt;% as_factor() %&gt;% fct_rev())
+
+data_transformed_tbl %&gt;%
+        ggplot(aes(value, model_id, color = model_type)) +
+        geom_point(size = 3) +
+        geom_label(aes(label = round(value, 2), hjust = &quot;inward&quot;)) +
+        
+        # Facet to break out logloss and auc
+        facet_wrap(~ key, scales = &quot;free_x&quot;) +
+        labs(title = &quot;Leaderboard Metrics&quot;,
+             subtitle = paste0(&quot;Ordered by: &quot;, &quot;auc&quot;),
+             y = &quot;Model Postion, Model ID&quot;, x = &quot;&quot;) + 
+        theme(legend.position = &quot;bottom&quot;)</code></pre>
+<p><img src="Performance_metrics_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>#Grid search
+
+deeplearning_h2o &lt;- h2o.loadModel(&quot;model_ml/DeepLearning_grid_1_AutoML_41_20220328_03648_model_2&quot;)
+
+h2o.performance(deeplearning_h2o, newdata = as.h2o(test_tbl))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## [1] &quot;WARNING: Model metrics cannot be calculated and metric_json is empty due to the absence of the response column in your dataset.&quot;</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>deeplearning_grid_01 &lt;- h2o.grid(
+
+    # See help page for available algos
+    algorithm = &quot;deeplearning&quot;,
+    
+    # I just use the same as the object
+    grid_id = &quot;deeplearning_grid_01&quot;,
+    
+    # The following is for ?h2o.deeplearning()
+    # predictor and response variables
+    x = x,
+    y = y,
+    
+    # training and validation frame and crossfold validation
+    training_frame   = train_h2o,
+    validation_frame = valid_h2o,
+    nfolds = 5,
+    
+    # Hyperparamters: Use deeplearning_h2o@allparameters to see all
+    hyper_params = list(
+        # Use some combinations (the first one was the original)
+        hidden = list(c(10, 10, 10), c(50, 20, 10), c(20, 20, 20)),
+        epochs = c(10, 50, 100)
+    )
+)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>h2o.getGrid(grid_id = &quot;deeplearning_grid_01&quot;, sort_by = &quot;auc&quot;, decreasing = TRUE)</code></pre>
+<pre><code>## H2O Grid Details
+## ================
+## 
+## Grid ID: deeplearning_grid_01 
+## Used hyper parameters: 
+##   -  epochs 
+##   -  hidden 
+## Number of models: 27 
+## Number of failed models: 9 
+## 
+## Hyper-Parameter Search Summary: ordered by decreasing auc
+##      epochs       hidden                     model_ids     auc
+## 1 101.40324 [20, 20, 20] deeplearning_grid_01_model_35 0.89447
+## 2 101.40996 [10, 10, 10] deeplearning_grid_01_model_12 0.89423
+## 3 101.38038 [50, 20, 10] deeplearning_grid_01_model_15 0.89359
+## 4 101.38896 [10, 10, 10] deeplearning_grid_01_model_21 0.88590
+## 5  52.00780 [20, 20, 20] deeplearning_grid_01_model_17 0.88390
+## 
+## ---
+##       epochs       hidden                     model_ids     auc
+## 22  10.41107 [20, 20, 20]  deeplearning_grid_01_model_7 0.77802
+## 23  10.38813 [10, 10, 10] deeplearning_grid_01_model_19 0.76982
+## 24  51.96586 [50, 20, 10]  deeplearning_grid_01_model_5 0.76965
+## 25 102.37895 [50, 20, 10]  deeplearning_grid_01_model_6 0.76677
+## 26 104.02308 [20, 20, 20]  deeplearning_grid_01_model_9 0.76600
+## 27  52.02508 [10, 10, 10]  deeplearning_grid_01_model_2 0.74809
+## Failed models
+## -------------
+##  epochs       hidden status_failed
+##    10.0 [10, 10, 10]          FAIL
+##    50.0 [10, 10, 10]          FAIL
+##   100.0 [10, 10, 10]          FAIL
+##    10.0 [50, 20, 10]          FAIL
+##    50.0 [50, 20, 10]          FAIL
+##   100.0 [50, 20, 10]          FAIL
+##    10.0 [20, 20, 20]          FAIL
+##    50.0 [20, 20, 20]          FAIL
+##   100.0 [20, 20, 20]          FAIL
+##                                                msgs_failed
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;
+##  &quot;Object with key=&#39;RTMP_sid_a00c_5&#39; doesn&#39;t exist in DKV.&quot;</code></pre>
+<pre class="r"><code>deeplearning_grid_01_model_1 &lt;- h2o.getModel(&quot;deeplearning_grid_01_model_1&quot;)
+
+deeplearning_grid_01_model_1 %&gt;% h2o.auc(train = T, valid = T, xval = T)</code></pre>
+<pre><code>##     train     valid      xval 
+## 0.9337272 0.8591121 0.8263672</code></pre>
+<pre class="r"><code>##     train     valid      xval 
+## 0.9093134 0.7922078 0.8299115 
+
+# We can tell the model is overfitting because of the huge difference between training AUC and the validation / cross validation AUC
+
+# Run it on the test data
+deeplearning_grid_01_model_1 %&gt;%
+    h2o.performance(newdata = as.h2o(test_tbl))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## [1] &quot;WARNING: Model metrics cannot be calculated and metric_json is empty due to the absence of the response column in your dataset.&quot;</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code># 4. Assessing Performance ----
+stacked_ensemble_h2o &lt;- h2o.loadModel(&quot;model_ml/StackedEnsemble_AllModels_2_AutoML_41_20220328_03648&quot;)
+deeplearning_h2o     &lt;- h2o.loadModel(&quot;model_ml/DeepLearning_grid_1_AutoML_41_20220328_03648_model_2&quot;)
+glm_h2o              &lt;- h2o.loadModel(&quot;model_ml/GLM_1_AutoML_41_20220328_03648&quot;)
+
+performance_h2o &lt;- h2o.performance(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## [1] &quot;WARNING: Model metrics cannot be calculated and metric_json is empty due to the absence of the response column in your dataset.&quot;</code></pre>
+<pre class="r"><code>typeof(performance_h2o)</code></pre>
+<pre><code>## [1] &quot;NULL&quot;</code></pre>
+<pre class="r"><code>performance_h2o %&gt;% slotNames()</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>h2o.auc(performance_h2o, train = T, valid = T, xval = T)
+## [1] 0.8588763
+
+# Caution: &quot;train, &quot;val&quot;, and &quot;xval&quot; arugments only work for models (not performance objects)
+h2o.auc(stacked_ensemble_h2o, train = T, valid = T, xval = T)</code></pre>
+<pre><code>##     train     valid      xval 
+## 0.9499343 0.8591121 0.8413322</code></pre>
+<pre class="r"><code>##     train     valid      xval 
+## 0.9892475 0.8219522 0.8383290 
+
+h2o.giniCoef(performance_h2o)
+## [1] 0.7177527
+h2o.logloss(performance_h2o)
+## [1] 0.2941769
+
+# result for the training data
+h2o.confusionMatrix(stacked_ensemble_h2o)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["No"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Yes"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Error"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Rate"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"897","2":"12","3":"0.01320132","4":"=12/909","_rn_":"No"},{"1":"40","2":"115","3":"0.25806452","4":"=40/155","_rn_":"Yes"},{"1":"937","2":"127","3":"0.04887218","4":"=52/1064","_rn_":"Totals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>#h2o.confusionMatrix(performance_h2o)</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

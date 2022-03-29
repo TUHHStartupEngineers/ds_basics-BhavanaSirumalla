@@ -1,0 +1,422 @@
+---
+title: "Lime"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    collapsed: false
+    number_sections: true
+    toc_depth: 3
+    #code_folding: hide
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE, cache=TRUE)
+```
+
+# Explaining Black-Box Models With LIME
+
+
+## Challenge
+
+```{r message=FALSE, warning=FALSE}
+# 1. Setup ----
+
+# Load Libraries 
+
+library(h2o)
+library(recipes)
+library(readxl)
+library(tidyverse)
+library(tidyquant)
+library(lime)
+library(tidymodels)
+library(dplyr)
+library(rsample)
+library(lubridate)
+library(ggplot2)
+
+# Load Data
+employee_attrition_tbl <- read_csv("00_data/datasets-1067-1925-WA_Fn-UseC_-HR-Employee-Attrition.csv")
+definitions_raw_tbl    <- read_excel("00_data/data_definitions.xlsx", sheet = 1, col_names = FALSE)
+
+# Processing Pipeline
+#source("00_Scripts/data_processing_pipeline.R")
+process_hr_data_readable <- function(data, definitions_tbl) {
+  
+  definitions_list <- definitions_tbl %>%
+    fill(...1, .direction = "down") %>%
+    filter(!is.na(...2)) %>%
+    separate(...2, into = c("key", "value"), sep = " '", remove = TRUE) %>%
+    rename(column_name = ...1) %>%
+    mutate(key = as.numeric(key)) %>%
+    mutate(value = value %>% str_replace(pattern = "'", replacement = "")) %>%
+    split(.$column_name) %>%
+    map(~ select(., -column_name)) %>%
+    map(~ mutate(., value = as_factor(value))) 
+  
+  for (i in seq_along(definitions_list)) {
+    list_name <- names(definitions_list)[i]
+    colnames(definitions_list[[i]]) <- c(list_name, paste0(list_name, "_value"))
+  }
+  
+  data_merged_tbl <- list(HR_Data = data) %>%
+    append(definitions_list, after = 1) %>%
+    reduce(left_join) %>%
+    select(-one_of(names(definitions_list))) %>%
+    set_names(str_replace_all(names(.), pattern = "_value", 
+                              replacement = "")) %>%
+    select(sort(names(.))) %>%
+    mutate_if(is.character, as.factor) %>%
+    mutate(
+      BusinessTravel = BusinessTravel %>% fct_relevel("Non-Travel", 
+                                                      "Travel_Rarely", 
+                                                      "Travel_Frequently"),
+      MaritalStatus  = MaritalStatus %>% fct_relevel("Single", 
+                                                     "Married", 
+                                                     "Divorced")
+    )
+  
+  return(data_merged_tbl)
+  
+}
+
+
+employee_attrition_readable_tbl <- process_hr_data_readable(employee_attrition_tbl, definitions_raw_tbl)
+
+# Split into test and train
+set.seed(seed = 1113)
+split_obj <- rsample::initial_split(employee_attrition_readable_tbl, prop = 0.85)
+
+# Assign training and test data
+train_readable_tbl <- training(split_obj)
+test_readable_tbl  <- testing(split_obj)
+
+# ML Preprocessing Recipe 
+recipe_obj <- recipe(Attrition ~ ., data = train_readable_tbl) %>%
+  step_zv(all_predictors()) %>%
+  step_mutate_at(c("JobLevel", "StockOptionLevel"), fn = as.factor) %>% 
+  prep()
+
+recipe_obj
+
+train_tbl <- bake(recipe_obj, new_data = train_readable_tbl)
+test_tbl  <- bake(recipe_obj, new_data = test_readable_tbl)
+
+# 2. Models ----
+
+h2o.init()
+
+automl_leader <- h2o.loadModel("model_business case/StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425")
+automl_leader
+
+# 3. LIME ----
+
+# 3.1 Making Predictions ----
+predictions_tbl <- automl_leader %>% 
+  h2o.predict(newdata = as.h2o(test_tbl)) %>%
+  as_tibble() %>%
+  bind_cols(
+    test_tbl %>%
+      select(Attrition, EmployeeNumber)
+  )
+
+# 3.2 Single Explanation ---
+explainer <- train_tbl %>%
+  select(-Attrition) %>%
+  lime(
+    model           = automl_leader,
+    bin_continuous  = TRUE,
+    n_bins          = 4,
+    quantile_bins   = TRUE
+  )
+
+explanation <- test_tbl %>%
+  slice(1) %>%
+  select(-Attrition) %>%
+  lime::explain(
+    
+    # Pass our explainer object
+    explainer = explainer,
+    # Because it is a binary classification model: 1
+    n_labels   = 1,
+    # number of features to be returned
+    n_features = 8,
+    # number of localized linear models
+    n_permutations = 5000,
+    # Let's start with 1
+    kernel_width   = 1
+  )
+
+explanation %>%
+  as_tibble() %>%
+  select(feature:prediction) 
+
+plot_features(explanation = explanation, ncol = 1)
+
+#plot_features(explanation, ncol = 4)
+
+
+# 3.3 Multiple Explanations ----
+
+explanation_multiple <- test_tbl %>%
+  slice(1:20) %>%
+  select(-Attrition) %>%
+  lime::explain(
+    explainer = explainer,
+    n_labels   = 1,
+    n_features = 8,
+    n_permutations = 5000,
+    kernel_width   = 0.5
+  )
+
+explanation_multiple  %>%
+  as.tibble()
+
+#plot_features(explanation = explanation_x, ncol = 4)
+
+plot_explanations(explanation = explanation_multiple )
+
+#Challenge
+
+#Part 1------
+
+explanation %>% 
+  as.tibble()
+
+case_1 <- explanation %>%
+  filter(case == 1)
+
+case_1 %>%
+  plot_features()
+
+#Visualize
+case_1 %>%
+  mutate(feature_weight_abs = abs(feature_weight)) %>% 
+  mutate(feature_desc = feature_desc %>% as_factor() %>% fct_reorder(feature_weight_abs)) %>%
+  mutate(feature_contribution = ntile(feature_weight, 2)) %>%
+  mutate(feature_contribution = case_when(
+    feature_weight >= 0 ~ "Supports",
+    feature_weight < 0 ~ "Contradicts" 
+  )) %>%
+  ggplot(aes(feature_desc, feature_weight)) +
+  geom_col(aes(fill = feature_contribution)) + 
+  coord_flip()+
+  labs(
+    subtitle = "Case: 1
+    Label = No
+    Proability: 0.59
+    Explanation Fit: 0.31",
+    x = "Feature", 
+    y = "Weight"
+  )+
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    panel.background = element_rect(fill = 'white')
+  )
+
+#Part 2 -----
+
+case_multiple<- explanation_multiple %>%
+  as.tibble()
+
+case_multiple %>% 
+  plot_explanations()
+
+#Visualize
+
+  ggplot(data= case_multiple, aes(case,feature, fill = feature_weight)) +
+  geom_tile(show.legend = TRUE) +
+  facet_wrap(~label) +
+  scale_fill_gradient2(
+    low = "brown",
+    mid = "white",
+    high = "#598BAF"
+  )+
+  labs(
+    x = "Case",
+    y = "Feature",
+    fill = "Feature weight"
+  ) + 
+
+  theme(
+    legend.position = "right",
+    axis.text.x = element_text(angle = 45),
+    panel.background = element_rect(fill = 'white'),
+    strip.background = element_rect(FALSE),
+    panel.border = element_rect(colour = 'black', fill=NA, size = 0.1),
+    strip.text = element_text(face = "bold"),
+  )
+
+```
+
+
+## Business case
+
+
+```{r message=FALSE, warning=FALSE}
+# LIME FEATURE EXPLANATION ----
+
+# 1. Setup ----
+
+# Load Libraries 
+
+library(h2o)
+library(recipes)
+library(readxl)
+library(tidyverse)
+library(tidyquant)
+library(lime)
+
+# Load Data
+employee_attrition_tbl <- read_csv("00_data/datasets-1067-1925-WA_Fn-UseC_-HR-Employee-Attrition.csv")
+definitions_raw_tbl    <- read_excel("00_data/data_definitions.xlsx", sheet = 1, col_names = FALSE)
+
+# Processing Pipeline
+#source("00_Scripts/data_processing_pipeline.R")
+process_hr_data_readable <- function(data, definitions_tbl) {
+  
+  definitions_list <- definitions_tbl %>%
+    fill(...1, .direction = "down") %>%
+    filter(!is.na(...2)) %>%
+    separate(...2, into = c("key", "value"), sep = " '", remove = TRUE) %>%
+    rename(column_name = ...1) %>%
+    mutate(key = as.numeric(key)) %>%
+    mutate(value = value %>% str_replace(pattern = "'", replacement = "")) %>%
+    split(.$column_name) %>%
+    map(~ select(., -column_name)) %>%
+    map(~ mutate(., value = as_factor(value))) 
+  
+  for (i in seq_along(definitions_list)) {
+    list_name <- names(definitions_list)[i]
+    colnames(definitions_list[[i]]) <- c(list_name, paste0(list_name, "_value"))
+  }
+  
+  data_merged_tbl <- list(HR_Data = data) %>%
+    append(definitions_list, after = 1) %>%
+    reduce(left_join) %>%
+    select(-one_of(names(definitions_list))) %>%
+    set_names(str_replace_all(names(.), pattern = "_value", 
+                              replacement = "")) %>%
+    select(sort(names(.))) %>%
+    mutate_if(is.character, as.factor) %>%
+    mutate(
+      BusinessTravel = BusinessTravel %>% fct_relevel("Non-Travel", 
+                                                      "Travel_Rarely", 
+                                                      "Travel_Frequently"),
+      MaritalStatus  = MaritalStatus %>% fct_relevel("Single", 
+                                                     "Married", 
+                                                     "Divorced")
+    )
+  
+  return(data_merged_tbl)
+  
+}
+
+employee_attrition_readable_tbl <- process_hr_data_readable(employee_attrition_tbl, definitions_raw_tbl)
+
+# Split into test and train
+set.seed(seed = 1113)
+split_obj <- rsample::initial_split(employee_attrition_readable_tbl, prop = 0.85)
+
+# Assign training and test data
+train_readable_tbl <- training(split_obj)
+test_readable_tbl  <- testing(split_obj)
+
+# ML Preprocessing Recipe 
+recipe_obj <- recipe(Attrition ~ ., data = train_readable_tbl) %>%
+  step_zv(all_predictors()) %>%
+  step_mutate_at(c("JobLevel", "StockOptionLevel"), fn = as.factor) %>% 
+  prep()
+
+#recipe_obj
+
+train_tbl <- bake(recipe_obj, new_data = train_readable_tbl)
+test_tbl  <- bake(recipe_obj, new_data = test_readable_tbl)
+
+# 2. Models ----
+
+h2o.init()
+
+automl_leader <- h2o.loadModel("model_business case/StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425")
+automl_leader
+# 3. LIME ----
+
+# 3.1 Making Predictions ----
+
+predictions_tbl <- automl_leader %>% 
+  h2o.predict(newdata = as.h2o(test_tbl)) %>%
+  as.tibble() %>%
+  bind_cols(
+    test_tbl %>%
+      select(Attrition, EmployeeNumber)
+  )
+
+#predictions_tbl
+
+test_tbl %>%
+  slice(1) %>%
+  glimpse()
+
+# 3.2 Single Explanation ----
+
+explainer <- train_tbl %>%
+  select(-Attrition) %>%
+  lime(
+    model           = automl_leader,
+    bin_continuous  = TRUE,
+    n_bins          = 4,
+    quantile_bins   = TRUE
+  )
+
+#explainer
+
+#?lime::explain
+
+explanation <- test_tbl %>%
+  slice(1) %>%
+  select(-Attrition) %>%
+  lime::explain(
+    
+    # Pass our explainer object
+    explainer = explainer,
+    # Because it is a binary classification model: 1
+    n_labels   = 1,
+    # number of features to be returned
+    n_features = 8,
+    # number of localized linear models
+    n_permutations = 5000,
+    # Let's start with 1
+    kernel_width   = 1
+  )
+
+#explanation
+
+explanation %>%
+  as.tibble() %>%
+  select(feature:prediction) 
+
+plot_features(explanation = explanation, ncol = 1)
+
+
+# 3.3 Multiple Explanations ----
+
+explanation <- test_tbl %>%
+  slice(1:20) %>%
+  select(-Attrition) %>%
+  lime::explain(
+    explainer = explainer,
+    n_labels   = 1,
+    n_features = 8,
+    n_permutations = 5000,
+    kernel_width   = 0.5
+  )
+
+explanation %>%
+  as.tibble()
+
+#plot_features(explanation, ncol = 4)
+plot_explanations(explanation)
+
+```

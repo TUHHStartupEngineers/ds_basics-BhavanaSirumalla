@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>02 Data Acqusition</title>
+
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MyLabJournal</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Index</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Journal
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_tidyverse.html">Tidyverse</a>
+    </li>
+    <li>
+      <a href="02_data_acquisition.html">Data Acquisition</a>
+    </li>
+    <li>
+      <a href="03_data_wrangling.html">Data Wrangling</a>
+    </li>
+    <li>
+      <a href="04_data_visualization.html">Data Visualization</a>
+    </li>
+    <li>
+      <a href="Machine_learning.html">Machine_learning</a>
+    </li>
+    <li>
+      <a href="Supervised_ML.html">Supervised_ML</a>
+    </li>
+    <li>
+      <a href="Automated_ML.html">Automated_ML</a>
+    </li>
+    <li>
+      <a href="Performance_metrics.html">Performance_metrics</a>
+    </li>
+    <li>
+      <a href="Lime.html">Lime</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="05_class_notes.html">Class notes</a>
+</li>
+<li>
+  <a href="06_links.html">Links</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">02 Data Acqusition</h1>
+
+</div>
+
+
+<div id="data-acquisition" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Data Acquisition</h1>
+<div id="challenge-1--get-data-with-api" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> Challenge 1- Get data with API</h2>
+<pre class="r"><code>#Load libraries
+library(httr)
+library(tidyverse)
+#getting data from spotify 
+id = &#39;caba8ed3155444e9aea7331dcd43bd69&#39;
+code = &#39;269afd3f95e54e2cad66234672000e47&#39;
+response = POST(&#39;https://accounts.spotify.com/api/token&#39;,
+  accept_json(),
+  authenticate(id, code),
+  body = list(grant_type = &#39;client_credentials&#39;),
+  encode = &#39;form&#39;,
+  verbose()
+)</code></pre>
+<pre class="r"><code>#token
+token = content(response)$access_token
+HeaderValue = paste0(&#39;Bearer &#39;, token)
+albumID = &quot;1NAmidJlEaVgA3MpcPFYGq&quot;
+track_URI = paste0(&#39;https://api.spotify.com/v1/albums/&#39;, albumID,&#39;/tracks&#39;)
+track_response = GET(url = track_URI, add_headers(Authorization = HeaderValue))
+tracks = content(track_response)
+#getting the info
+ntracks = length(tracks$items)
+artist_info&lt;-data.frame(
+  name=character(ntracks),
+  artist=character(ntracks),
+  stringsAsFactors=FALSE
+)
+
+#looping to get data
+for(i in 1:ntracks){
+  artist_info[i,]$name &lt;- tracks$items[[i]]$name
+  artist_info[i,]$artist &lt;- tracks$items[[i]]$artists[[1]]$name 
+  
+}
+artist_info_tbl&lt;-artist_info
+artist_info_tbl %&gt;% glimpse()</code></pre>
+<pre><code>## Rows: 18
+## Columns: 2
+## $ name   &lt;chr&gt; &quot;I Forgot That You Existed&quot;, &quot;Cruel Summer&quot;, &quot;Lover&quot;, &quot;The Man&quot;~
+## $ artist &lt;chr&gt; &quot;Taylor Swift&quot;, &quot;Taylor Swift&quot;, &quot;Taylor Swift&quot;, &quot;Taylor Swift&quot;,~</code></pre>
+</div>
+<div id="challenge-2--web-scraping" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Challenge 2- Web Scraping</h2>
+<pre class="r"><code>library(rvest)
+library(stringi)
+library(xopen)
+library(jsonlite)
+library(tidyverse)
+library(glue)
+
+url &lt;- &quot;https://www.radon-bikes.de&quot;
+#xopen(url)
+html_home &lt;- read_html(url)
+
+#Get url for each of the product categories
+bike_category_url_tbl &lt;- html_home %&gt;% html_nodes(&quot;.megamenu__item&quot;) %&gt;% html_elements(&quot;a&quot;) %&gt;% 
+  html_attr(&#39;href&#39;) %&gt;% enframe(name = &#39;position&#39;,value = &#39;title&#39;) %&gt;% mutate(
+    category_url=glue(&quot;https://www.radon-bikes.de{title}&quot;)
+  ) %&gt;% filter(position&lt;9)
+
+#Get the Model Names
+get_bike_data &lt;- function(link){
+  model_infor &lt;- read_html(link) %&gt;% html_nodes(&quot;.o-slick-slider__slide-content&quot;) %&gt;%
+  html_element(&quot;h2&quot;) %&gt;% html_text() %&gt;% enframe(name = &quot;position&quot;,value = &#39;model&#39;)
+  
+  #Get the sizes
+  bike_sizes &lt;- read_html(link) %&gt;% html_nodes(&quot;.o-slick-slider__slide-content&quot;)%&gt;%  
+  html_node(&#39;.m-bikegrid__size&#39;) %&gt;% html_text() %&gt;% str_extract(&quot;[0-9].+&quot;)%&gt;% 
+ enframe(name = &quot;position&quot;,value = &quot;size&quot;)
+  
+#Get the prices
+  bike_prices &lt;- read_html(link) %&gt;% html_nodes(&quot;.m-serienpanel__price--active&quot;) %&gt;% html_text() %&gt;% 
+    str_remove(&quot;^ .$&quot;) %&gt;%  stri_remove_empty() %&gt;%  enframe(name=&#39;position&#39;,value = &#39;price&#39;)
+  
+#combine three using position
+   model_infor %&gt;% left_join(bike_sizes) %&gt;% left_join(bike_prices) %&gt;%
+    filter(position!=23)
+}
+
+# Get the URl for 1st category
+category_1 &lt;-  bike_category_url_tbl$category_url[2] 
+bike_model&lt;- get_bike_data(link = category_1)
+
+bike_category_url_data &lt;- bike_category_url_tbl %&gt;% pull(category_url) 
+
+bike_data_list &lt;- map(bike_category_url_data,get_bike_data) 
+
+bike_data_tbl &lt;- bind_rows(bike_data_list) 
+
+#removing &quot;Euro&quot; symbol from price
+bike_data_tbl$price&lt;-gsub(&quot;€&quot;,&quot;&quot;,as.character(bike_data_tbl$price))%&gt;% na.exclude()
+bike_data_tbl  %&gt;% head(n=10)# display 10 rows</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["model"],"name":[2],"type":["chr"],"align":["left"]},{"label":["size"],"name":[3],"type":["chr"],"align":["left"]},{"label":["price"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"JEALOUS 8.0","3":"29\"","4":"2599"},{"1":"2","2":"JEALOUS 9.0","3":"29\"","4":"2999"},{"1":"3","2":"JEALOUS 10.0","3":"29\"","4":"4199"},{"1":"4","2":"JEALOUS 10.0 EA","3":"29\"","4":"5499"},{"1":"5","2":"JEALOUS AL 8.0","3":"29\"","4":"1099"},{"1":"6","2":"JEALOUS AL 8.0 HD","3":"29\"","4":"1499"},{"1":"7","2":"JEALOUS AL 9.0","3":"29\"","4":"1649"},{"1":"8","2":"JEALOUS AL 9.0 MS","3":"29\"","4":"1649"},{"1":"9","2":"JEALOUS AL 10.0","3":"29\"","4":"1849"},{"1":"10","2":"JEALOUS AL 10.0 SL","3":"29\"","4":"2199"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<div id="business-case" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> Business case</h2>
+<pre class="r"><code># WEBSCRAPING ----
+
+# 1.0 LIBRARIES ----
+
+library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
+library(rvest)     # HTML Hacking &amp; Web Scraping
+library(xopen)     # Quickly opening URLs
+library(jsonlite)  # converts JSON files to R objects
+library(glue)      # concatenate strings
+library(stringi)   # character string/text processing
+
+# 1.1 COLLECT PRODUCT FAMILIES ----
+
+url_home          &lt;- &quot;https://www.canyon.com/en-de&quot;
+html_home         &lt;- read_html(url_home)
+
+# 01. Get bike categories ----
+bike_category_tbl &lt;- html_home %&gt;%
+  
+  # Get the nodes for the families ...
+  html_nodes(css = &quot;.is-bikeCategory .js-menuItemThirdLevel&quot;) |&gt; 
+  html_attr(&quot;href&quot;) |&gt; 
+  as_tibble() |&gt; 
+  rename(&quot;url&quot; = value) |&gt; 
+  mutate(url = str_c(&quot;https://www.canyon.com&quot;, url))
+
+bike_category_tbl</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["url"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/"},{"1":"https://www.canyon.com/en-de/road-bikes/triathlon-bikes/speedmax/"},{"1":"https://www.canyon.com/en-de/road-bikes/endurance-bikes/endurace/"},{"1":"https://www.canyon.com/en-de/road-bikes/race-bikes/ultimate/"},{"1":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/"},{"1":"https://www.canyon.com/en-de/road-bikes/cyclocross-bikes/inflite/"},{"1":"https://www.canyon.com/en-de/road-bikes/triathlon-bikes/speedmax/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/all-road/grail/"},{"1":"https://www.canyon.com/en-de/road-bikes/endurance-bikes/endurace/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/bike-packing/grizl/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/bike-packing/grizl/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/all-road/grail/"},{"1":"https://www.canyon.com/en-de/gravel-bikes/all-road/grail/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/enduro-bikes/strive/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/enduro-bikes/torque/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/grand-canyon/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/neuron/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/stoic/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral-125/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/spectral/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/grandcanyon-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/neuron-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/spectral-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/torque-on/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/cross-country-bikes/exceed/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/trail-bikes/grand-canyon/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/cross-country-bikes/lux/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/downhill-bikes/sender/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/enduro-bikes/torque/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/dirt-jump-bikes/stitched/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/fat-bikes/dude/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/youth-kids/grand-canyon-young-hero/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/youth-kids/neuron-young-hero/"},{"1":"https://www.canyon.com/en-de/mountain-bikes/youth-kids/spectral-young-hero/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-road-bikes/endurace-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/roadlite-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-gravel-bikes/grail-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/grandcanyon-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/neuron-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/spectral-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-mountain-bikes/torque-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/roadlite-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/commuter-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/precede-on/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-touring-bikes/pathlite-on/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/city-bikes/roadlite/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/commuter-bikes/commuter/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/precede-on/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/commuter-bikes/commuter/"},{"1":"https://www.canyon.com/en-de/electric-bikes/electric-city-bike/precede-on/"},{"1":"https://www.canyon.com/en-de/hybrid-bikes/touring-bikes/pathlite/"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># 02a. Get bike urls (single category)
+bike_category_url &lt;- bike_category_tbl$url[1]
+
+html_bike_category  &lt;- read_html(bike_category_url)
+bike_url_tbl        &lt;- html_bike_category %&gt;%
+  
+  # Get the &#39;a&#39; nodes, which are hierarchally underneath 
+  # the class productTile__contentWrapper
+  html_nodes(css = &quot;.productTile__contentWrapper &gt; a&quot;) %&gt;%
+  html_attr(&quot;href&quot;) %&gt;%
+  
+  # Remove the query parameters of the URL (everything after the &#39;?&#39;)
+  str_remove(pattern = &quot;\\?.*&quot;) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;url&quot;)
+
+html_bike_category</code></pre>
+<pre><code>## {html_document}
+## &lt;html lang=&quot;en-de&quot;&gt;
+## [1] &lt;head&gt;\n&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8 ...
+## [2] &lt;body id=&quot;js-body&quot; class=&quot;page js-page   page--ptCatalog page--sptProduct ...</code></pre>
+<pre class="r"><code># 02b. Get bike description (single category)
+bike_desc_tbl &lt;- html_bike_category %&gt;%
+  
+  # Get the nodes in the meta tag where the attribute itemprop equals description
+  html_nodes(&#39;.productTile__productSummaryLeft &gt; meta[itemprop=&quot;description&quot;]&#39;) %&gt;%
+  
+  # Extract the content of the attribute content
+  html_attr(&quot;content&quot;) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;description&quot;)
+
+
+# 02c. Get JSON data
+bike_json_tbl  &lt;- html_bike_category %&gt;%
+  
+  html_nodes(css = &#39;.productGrid__listItem.xlt-producttile &gt; div&#39;) %&gt;%
+  html_attr(&quot;data-gtm-impression&quot;) %&gt;%
+  
+  # Convert the JSON format to dataframe
+  # map runs that function on each element of the list
+  map(fromJSON) %&gt;% # need JSON ### need lists
+  
+  # Extract relevant information of the nested list
+  map(purrr::pluck, &quot;ecommerce&quot;, &quot;impressions&quot;) %&gt;% # Need purrr and expl above
+  
+  # Set &quot;not defined&quot; and emtpy fields to NA (will be easier to work with)
+  map(na_if, &quot;not defined&quot;) %&gt;%
+  map(na_if, &quot;&quot;) %&gt;%
+  
+  # The class of dimension56 and price varies between numeric and char.
+  # This converts this column in each list to numeric
+  # across allows to perform the same operation on multiple columns
+  map(~mutate(., across(c(&quot;dimension56&quot;,&quot;price&quot;), as.numeric))) %&gt;%
+  
+  # Stack all lists together
+  bind_rows() %&gt;%
+  # Convert to tibble so that we have the same data format
+  as_tibble() %&gt;%
+  
+  # Add consecutive numbers so that we can bind all data together
+  # You could have also just use bind_cols()
+  rowid_to_column(var=&#39;position&#39;) %&gt;%
+  left_join(bike_desc_tbl) %&gt;%
+  left_join(bike_url_tbl)
+
+# Function ----------------------------------------------------------------
+
+get_bike_data &lt;- function(url) {
+  
+  html_bike_category &lt;- read_html(url)
+  
+  # Get the URLs
+  bike_url_tbl  &lt;- html_bike_category %&gt;%
+    html_nodes(css = &quot;.productTile__contentWrapper &gt; a&quot;) %&gt;%
+    html_attr(&quot;href&quot;) %&gt;%
+    str_remove(pattern = &quot;\\?.*&quot;) %&gt;%
+    enframe(name = &quot;position&quot;, value = &quot;url&quot;)
+  # Get the descriptions
+  bike_desc_tbl &lt;- html_bike_category %&gt;%
+    html_nodes(css = &#39;.productTile__productSummaryLeft &gt; 
+                      meta[itemprop=&quot;description&quot;]&#39;) %&gt;%
+    html_attr(&quot;content&quot;) %&gt;%
+    enframe(name = &quot;position&quot;, value = &quot;description&quot;)
+  
+  # Get JSON data
+  bike_json_tbl &lt;- html_bike_category %&gt;%
+    html_nodes(css = &#39;.productGrid__listItem.xlt-producttile &gt; div&#39;) %&gt;%
+    html_attr(&quot;data-gtm-impression&quot;) %&gt;%
+    map(fromJSON) %&gt;% # need JSON ### need lists
+    map(purrr::pluck, 2, &quot;impressions&quot;) %&gt;% 
+    map(na_if, &quot;not defined&quot;) %&gt;%
+    map(na_if, &quot;&quot;) %&gt;%
+    map(~mutate(., across(c(&quot;dimension56&quot;,&quot;metric4&quot;,&quot;price&quot;), as.numeric))) %&gt;%
+    bind_rows() %&gt;%
+    as_tibble() %&gt;%
+    rowid_to_column(var=&#39;position&#39;) %&gt;%
+    left_join(bike_desc_tbl) %&gt;%
+    left_join(bike_url_tbl)
+  
+}  
+
+bike_json_tbl</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["name"],"name":[2],"type":["chr"],"align":["left"]},{"label":["id"],"name":[3],"type":["chr"],"align":["left"]},{"label":["brand"],"name":[4],"type":["chr"],"align":["left"]},{"label":["category"],"name":[5],"type":["chr"],"align":["left"]},{"label":["variant"],"name":[6],"type":["chr"],"align":["left"]},{"label":["dimension50"],"name":[7],"type":["chr"],"align":["left"]},{"label":["dimension52"],"name":[8],"type":["chr"],"align":["left"]},{"label":["dimension63"],"name":[9],"type":["chr"],"align":["left"]},{"label":["dimension64"],"name":[10],"type":["chr"],"align":["left"]},{"label":["dimension65"],"name":[11],"type":["chr"],"align":["left"]},{"label":["dimension66"],"name":[12],"type":["chr"],"align":["left"]},{"label":["dimension67"],"name":[13],"type":["chr"],"align":["left"]},{"label":["feedProductId"],"name":[14],"type":["chr"],"align":["left"]},{"label":["dimension54"],"name":[15],"type":["chr"],"align":["left"]},{"label":["dimension51"],"name":[16],"type":["chr"],"align":["left"]},{"label":["dimension53"],"name":[17],"type":["chr"],"align":["left"]},{"label":["quantity"],"name":[18],"type":["int"],"align":["right"]},{"label":["price"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["metric4"],"name":[20],"type":["int"],"align":["right"]},{"label":["dimension56"],"name":[21],"type":["dbl"],"align":["right"]},{"label":["description"],"name":[22],"type":["chr"],"align":["left"]},{"label":["url"],"name":[23],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"Aeroad CF SL 8 Disc","3":"2448","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CF SL","6":"50005889","7":"2020","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50005889","15":"NA","16":"Stealth - Grey","17":"NA","18":"1","19":"3192.44","20":"3799","21":"NA","22":"Canyon - Get UCI WorldTour performance at a more accessible level. With a newly developed, super-clean aero frame and integrated cockpit, this bike saves watts every time you turn the crank, so you can go faster and attack the field even harder.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cf-sl/aeroad-cf-sl-8-disc/2448.html"},{"1":"2","2":"Aeroad CF SLX 8 Disc Di2","3":"2771","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CF SLX","6":"50010392","7":"2021","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50010392","15":"NA","16":"Pace Blue","17":"NA","18":"1","19":"4789.08","20":"5699","21":"NA","22":"Canyon - Every inch of this bike is designed to provide aero gains across the board – wind tunnel-optimised tube profiles, superlight DT Swiss wheelset sculpted by F1 aero experts Swiss Side, and complete integration of all cables for reduced drag. The Aeroad CF SLX 8 Disc Di2 is our interpretation of a cutting-edge aero race bike.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cf-slx/aeroad-cf-slx-8-disc-di2/2771.html"},{"1":"3","2":"Aeroad CF SL 7 Disc","3":"2447","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CF SL","6":"50005888","7":"2020","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50005888","15":"NA","16":"Racing Red","17":"NA","18":"1","19":"2856.30","20":"3399","21":"NA","22":"Canyon - The newly developed Aeroad CF SL frame takes the world-class design of the flagship Aeroad CFR and makes it available at an incredibly accessible price point. Uniting advanced aerodynamics, razor-sharp handling, and improved comfort levels, this is a truly uncompromising all-round road racer.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cf-sl/aeroad-cf-sl-7-disc/2447.html"},{"1":"4","2":"Aeroad CF SLX 8 WMN Disc Di2","3":"2770","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CF SLX","6":"50010368","7":"2021","8":"Aeroad","9":"female","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50010368","15":"NA","16":"Canyon-SRAM Team","17":"NA","18":"1","19":"4789.08","20":"5699","21":"NA","22":"Canyon - This WMN Aeroad combines women’s-specific components, a high-performance drivetrain, and a frame that delivers superb aerodynamics and ride quality to give female riders every performance advantage imaginable out on the road.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cf-slx/aeroad-cf-slx-8-wmn-disc-di2/2770.html"},{"1":"5","2":"Aeroad CFR Disc eTap","3":"2774","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CFR","6":"50010434","7":"2021","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50010434","15":"NA","16":"Movistar Replica","17":"NA","18":"1","19":"7562.18","20":"8999","21":"NA","22":"Canyon - An aero race bike ready to compete at the very highest levels of professional cycling. With components ridden by the fastest riders in the pro peloton, complete system integration, and special premium finish, the Aeroad CFR sets a new industry standard for aero road disc performance. This is the Next Level. This is CFR. This is Canyon Factory Racing.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cfr/aeroad-cfr-disc-etap/2774.html"},{"1":"6","2":"Aeroad CF SLX 8 Disc eTap","3":"2772","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CF SLX","6":"50010393","7":"2021","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50010393","15":"NA","16":"Stealth","17":"NA","18":"1","19":"5461.34","20":"6499","21":"NA","22":"Canyon - A masterfully sculpted, watt-saving aero frame. Zipp’s incredible 404 Firecrest carbon aero wheelset. Wireless electronic shifting. This is a complete performance package built to give you every possible advantage out on the road.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cf-slx/aeroad-cf-slx-8-disc-etap/2772.html"},{"1":"7","2":"Aeroad CFR Disc MvdP","3":"3504","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CFR","6":"50017213","7":"2021","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50017213","15":"NA","16":"MVDP Special","17":"NA","18":"1","19":"8402.52","20":"9999","21":"NA","22":"Canyon - Ride in the colours of Mathieu van der Poel and combine the Dutch superstar’s look with the absolute pinnacle of road bike technology. Designed for uncompromising aerodynamics and performance and featuring the highest level of system integration and a high-end finish, the Aeroad CFR Disc MvdP is a racing bike that’s fit for a World Champion.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cfr/aeroad-cfr-disc-mvdp/3504.html"},{"1":"8","2":"Aeroad CFR Disc Di2","3":"2773","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CFR","6":"50010420","7":"2021","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50010420","15":"NA","16":"Alpecin-Canyon Replica","17":"NA","18":"1","19":"7142.02","20":"8499","21":"NA","22":"Canyon - The best engineers. The finest materials and parts. Tested by the world’s best riders. Sculpted in collaboration with F1 aero experts Swiss Side, the Aeroad CFR Disc Di2 is a high-performance road race bike at the cutting edge of what’s possible with modern engineering and technology. The quickest road bike you’ll have ever ridden.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cfr/aeroad-cfr-disc-di2/2773.html"},{"1":"9","2":"Aeroad CF SL 7 WMN Disc","3":"2769","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CF SL","6":"50010362","7":"2021","8":"Aeroad","9":"female","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50010362","15":"NA","16":"Non Mint","17":"NA","18":"1","19":"2856.30","20":"3399","21":"NA","22":"Canyon - Lightweight, astonishingly aero, powerful disc brakes, razor-sharp handling – the newly developed Aeroad CF SL 7 WMN Disc is optimised for female riders and gives you every performance advantage you can imagine out on the road. And thanks to frame size-specific wheel sizing, get the same consistent ride feel across all sizes.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cf-sl/aeroad-cf-sl-7-wmn-disc/2769.html"},{"1":"10","2":"Aeroad CFR Disc EPS","3":"2493","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CFR","6":"50006483","7":"2020","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Complete Bike RR","13":"false","14":"50006483","15":"NA","16":"CFR Stealth","17":"NA","18":"1","19":"7562.18","20":"8999","21":"NA","22":"Canyon - An aero road bike that combines pro-level speed, cutting-edge technology, the world’s best parts, highly advanced aerodynamics, and a sprinkling of Campagnolo magic. Get Next Level performance. Get the Aeroad CFR Disc EPS.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cfr/aeroad-cfr-disc-eps/2493.html"},{"1":"11","2":"Aeroad CFR Disc Frame and Brake Kit","3":"2494","4":"Canyon","5":"Road/Aero/Aeroad/Aeroad CFR","6":"50006711","7":"2020","8":"Aeroad","9":"unisex","10":"NA","11":"ZFER","12":"Framesets Road","13":"false","14":"50006711","15":"NA","16":"CFR Stealth","17":"NA","18":"1","19":"3780.67","20":"4499","21":"NA","22":"Canyon - Outstanding aerodynamics combined with the latest tech: the Aeroad CFR Disc Frameset comes equipped with a Canyon carbon Aerocockpit, full-carbon fork, aero-optimised Canyon seatpost and SRAM Red disc brake callipers. The world-class frame sets a new benchmark in the world of aero road bikes with its premium finish and advanced carbon fibre layup. Build your dream aero bike and experience CFR – Canyon Factory Racing.","23":"https://www.canyon.com/en-de/road-bikes/aero-bikes/aeroad/cfr/aeroad-cfr-disc-frame-and-brake-kit/2494.html"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Run the function with the first url to check if it is working
+# bike_category_url &lt;- bike_category_tbl$url[1]
+# bike_data_tbl     &lt;- get_bike_data(url = bike_category_url)
+
+#bike_data_tbl
+
+bike_category_tbl$url[2]</code></pre>
+<pre><code>## [1] &quot;https://www.canyon.com/en-de/road-bikes/triathlon-bikes/speedmax/&quot;</code></pre>
+<pre class="r"><code>test &lt;- get_bike_data(bike_category_tbl$url[2])
+
+
+bike_category_url_vec &lt;- bike_category_tbl %&gt;% 
+  pull(url)
+
+# Run the function with every url as an argument
+bike_data_lst &lt;- map(bike_category_url_vec, get_bike_data)
+
+# Merge the list into a tibble
+bike_data_tbl &lt;- bind_rows(bike_data_lst)
+#saveRDS(bike_data_tbl, &quot;bike_data_tbl.rds&quot;)
+
+# Check for duplicates
+bike_data_tbl %&gt;%
+  group_by(id) %&gt;%
+  filter(n()&gt;1) %&gt;%
+  arrange(id) %&gt;% 
+  View()</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

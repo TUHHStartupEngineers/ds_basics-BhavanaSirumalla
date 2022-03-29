@@ -1,0 +1,329 @@
+---
+title: "Intro Machine Learning"
+#date: "2022-03"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    collapsed: false
+    number_sections: true
+    toc_depth: 3
+    #code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
+```
+
+
+# Machine Learning fundamentals
+
+
+## Challenge - Company Segmentation with Stock Prices
+
+```{r echo=TRUE}
+library(tidyquant)
+library(broom)
+library(umap)
+library(ggrepel)
+library(lubridate)
+library(readxl)
+library(tidyselect)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(glue)
+library(stringr)
+
+sp_500_prices_tbl <- read_rds("00_data/Business Decisions with Machine Learning/sp_500_prices_tbl.rds")
+sp_500_prices_tbl
+
+sp_500_index_tbl <- read_rds("00_data/Business Decisions with Machine Learning/sp_500_index_tbl.rds")
+sp_500_index_tbl
+
+## Step 1 - Convert stock prices to a standardized format (daily returns)
+sp_500_daily_returns_tbl <- sp_500_prices_tbl %>% select(symbol, date, adjusted) %>%
+  filter(year(date) >= 2018) %>%
+  group_by(symbol) %>%
+  mutate(adjusted_previous = lag(adjusted)) %>%
+  ungroup() %>%
+  
+  mutate(adjusted_difference = adjusted - adjusted_previous) %>% 
+  mutate(pct_return = adjusted_difference/adjusted_previous) %>% 
+  select(symbol, date, pct_return)
+
+#Step 2 - "Convert to User-Item Format"
+stock_date_matrix_tbl <- sp_500_daily_returns_tbl %>%
+  pivot_wider(names_from = date, values_from = pct_return, values_fill = 0) %>%
+  mutate_all( ~replace(., is.na(.), 0))
+
+
+## Step 3 - Perform K-Means Clustering
+stock_date_matrix_tbl <- read_rds("00_data/Business Decisions with Machine Learning/stock_date_matrix_tbl.rds")
+kmeans_obj <- stock_date_matrix_tbl %>%
+  select(-symbol) %>% 
+  kmeans(centers = 4, nstart = 20)
+
+broom::glance(kmeans_obj)
+
+## Step 4 - Find the optimal value of K
+kmeans_mapper <- function(center = 3) {
+  stock_date_matrix_tbl %>%
+    select(-symbol) %>%
+    kmeans(centers = center, nstart = 20)
+}
+
+library(purrr)
+k_means_mapped_tbl <- tibble(centers = 1:30) %>%
+  mutate(k_means = centers %>% map(kmeans_mapper)) %>%
+  mutate(glance  = k_means %>% map(glance))
+
+
+#Visualize Scree Plot
+
+k_means_mapped_tbl %>%
+  unnest(glance) %>%
+  select(centers, tot.withinss) %>%
+  
+  ggplot(aes(centers, tot.withinss)) +
+  geom_point(color = "#2DC6D6", size = 4) +
+  geom_line(color = "#2DC6D6", size = 1) +
+  ggrepel::geom_label_repel(aes(label = centers), color = "#2DC6D6") + 
+  labs(title = "Skree Plot", 
+       subtitle = "Measures the distance each of the customer are from the closes K-Means center",
+       caption = "Conclusion: Based on the Scree Plot, we select 5 clusters to segment the companies."
+       )
+
+#Step 5 - "Apply UMAP"
+umap_results <- stock_date_matrix_tbl %>%
+  select(-symbol) %>%
+  umap()
+
+# Convert umap results to tibble with symbols
+umap_results_tbl <- umap_results$layout %>%
+  as_tibble(.name_repair = "unique") %>% 
+  set_names(c("x", "y")) %>%
+  bind_cols(
+    stock_date_matrix_tbl %>% select(symbol) 
+  )
+
+# Visualize UMAP results
+
+umap_results_tbl %>%
+  ggplot(aes(x, y)) +
+  geom_point(alpha=0.5) + 
+  labs(title = "UMAP Projection")
+
+#Step 6 - "Combine K-Means and UMAP"
+
+k_means_obj <- k_means_mapped_tbl %>%
+  pull(k_means) %>%
+  pluck(10)
+
+kmeans_10_clusters_tbl <- k_means_obj %>% 
+  augment(stock_date_matrix_tbl) %>% 
+  select(symbol, .cluster) #
+
+# Use your dplyr & broom skills to combine the k_means_obj with the umap_results_tbl
+umap_kmeans_results_tbl <- umap_results_tbl %>%
+  left_join(kmeans_10_clusters_tbl) %>%
+  left_join(sp_500_index_tbl %>% select(symbol, company, sector))
+
+# Visualize the combined K-Means and UMAP results
+
+umap_kmeans_results_tbl  %>%
+  mutate(label_text = str_glue("Customer: {symbol}
+                                 Cluster: {.cluster}")) %>%
+  
+  ggplot(aes(x, y, color = .cluster)) +
+  
+  # Geometries
+  geom_point(alpha=0.5) +
+  ggrepel::geom_label_repel(aes(label = label_text), size = 2, fill = "#282A36") +
+  
+  # Formatting
+  scale_color_manual(values=c("#2d72d6", "red","blue", "green", "#2dc6d6", "#2dd692",
+                              "yellow", "black", "darkgreen","grey")) +
+  labs(title = "Customer Segmentation: 2D Projection")
+
+```
+
+
+## Business case - K-Means clustering, UMAP 2D Projection
+
+
+```{r}
+library(umap)
+library(readxl)
+library(tidyverse)
+library(broom)
+library(umap)
+library(readr)
+library(ggrepel) # Addon for ggplot, so that the labels do not overlap
+
+stores_tbl      <- read_excel(path  = "00_data/Business Decisions with Machine Learning/breakfast_at_the_frat.xlsx", 
+                              sheet = "dh Store Lookup",
+                              skip  = 1)
+products_tbl    <- read_excel(path  = "00_data/Business Decisions with Machine Learning/breakfast_at_the_frat.xlsx", 
+                              sheet = "dh Products Lookup",
+                              skip  = 1)
+transaction_tbl <- read_excel(path  = "00_data/Business Decisions with Machine Learning/breakfast_at_the_frat.xlsx",
+                              sheet = "dh Transaction Data", 
+                              skip  = 1)
+
+orderlines_tbl <- transaction_tbl %>% 
+  left_join(products_tbl, by = c("UPC")) %>% 
+  left_join(stores_tbl, by = c("STORE_NUM" = "STORE_ID"))
+
+glimpse(orderlines_tbl)
+
+# 1.1 Get Customer Trends ----
+customer_trends_tbl <- orderlines_tbl %>%
+  
+  mutate(BRANDED = ifelse(MANUFACTURER == "PRIVATE LABEL", "no", "yes")) %>% 
+  select(STORE_NAME, PRICE, UPC, DESCRIPTION, CATEGORY, SUB_CATEGORY, BRANDED, UNITS) %>%
+  
+  # Summarization and group by
+  group_by(STORE_NAME, PRICE, UPC, DESCRIPTION, CATEGORY, SUB_CATEGORY, BRANDED) %>%
+  summarise(QUANTITY_PURCHASED = sum(UNITS)) %>%
+  ungroup() %>%
+  
+  # Proportion
+  group_by(STORE_NAME) %>%
+  mutate(PROP_OF_TOTAL = QUANTITY_PURCHASED / sum(QUANTITY_PURCHASED)) %>%
+  ungroup()
+
+# 1.2 Convert to User-Item Format (e.g. Customer-Product) ----
+
+customer_product_tbl <- customer_trends_tbl %>%
+  
+  select(STORE_NAME, UPC, PROP_OF_TOTAL) %>%
+  pivot_wider(names_from = UPC, values_from = PROP_OF_TOTAL, values_fill = 0) %>%
+  ungroup()
+
+# 2.0 MODELING: K-MEANS CLUSTERING ----
+
+# 2.1 Performing K-Means ----
+#?kmeans
+
+kmeans_obj <- customer_product_tbl %>%
+  select(-STORE_NAME) %>%
+  kmeans(centers = 3, nstart = 100)
+
+# The group that each product is assigned to for each product   
+kmeans_obj$cluster
+
+# 2.2 Tidying a K-Means Object ----
+# return the centers information for the kmeans model
+broom::tidy(kmeans_obj) %>% glimpse()
+
+# return the overall summary metrics for the model
+# Including the tot.withinss for the skree plot
+broom::glance(kmeans_obj)
+
+# Add the clusters to the data
+broom::augment(kmeans_obj, customer_product_tbl) %>%
+  select(STORE_NAME, .cluster)
+
+# 2.3 How many centers (customer groups) to use? ----
+
+# Functions that works on 1 element
+# Setting default centers to 3
+kmeans_mapper <- function(centers = 3) {
+  
+  customer_product_tbl %>%
+    select(-STORE_NAME) %>%
+    kmeans(centers = centers, nstart = 100)
+}
+
+3 %>% kmeans_mapper() %>% glance()
+
+library(purrr)
+# Mapping the function to many elements
+kmeans_mapped_tbl <- tibble(centers = 1:15) %>%
+  mutate(k_means = centers %>% map(kmeans_mapper)) %>%
+  mutate(glance  = k_means %>% map(glance))
+
+kmeans_mapped_tbl %>%
+  unnest(glance) %>%
+  select(centers, tot.withinss)
+# 2.4 Skree Plot ----
+
+kmeans_mapped_tbl %>%
+  unnest(glance) %>%
+  select(centers, tot.withinss) %>%
+  
+  # Visualization
+  ggplot(aes(centers, tot.withinss)) +
+  geom_point(color = "#2DC6D6", size = 4) +
+  geom_line(color = "#2DC6D6", size = 1) +
+  # Add labels (which are repelled a little)
+  ggrepel::geom_label_repel(aes(label = centers), color = "#2DC6D6") + 
+  
+  # Formatting
+  labs(title = "Skree Plot",
+       subtitle = "Measures the distance each of the customer are from the closes K-Means center",
+       caption = "Conclusion: Based on the Scree Plot, we select 3 clusters to segment the customer base.")
+
+# 3.0 VISUALIZATION: UMAP ----
+
+# 3.1 Use UMAP to get 2-D Projection ----
+#?umap
+
+umap_obj <- customer_product_tbl %>%
+  select(-STORE_NAME) %>%
+  umap()
+
+umap_results_tbl <- umap_obj$layout %>%
+  as_tibble(.name_repair = "unique") %>% # argument is required to set names in the next step
+  set_names(c("x", "y")) %>%
+  bind_cols(
+    customer_product_tbl %>% select(STORE_NAME)
+  )
+
+umap_results_tbl %>%
+  ggplot(aes(x, y)) +
+  geom_point() + 
+  geom_label_repel(aes(label = STORE_NAME), size = 3)
+
+# 3.2 Use K-Means to Add Cluster Assignments ----
+umap_results_tbl
+
+# Get the data for the third element (which we have chosen in the skree plot)
+kmeans_3_obj <- kmeans_mapped_tbl %>%
+  pull(k_means) %>%
+  pluck(3)
+
+# Convert it to a tibble with broom
+kmeans_3_clusters_tbl <- kmeans_3_obj %>% 
+  augment(customer_product_tbl) %>%
+  # Select the data we need
+  select(STORE_NAME, .cluster)
+
+# Bind data together
+umap_kmeans_3_results_tbl <- umap_results_tbl %>%
+  left_join(kmeans_3_clusters_tbl)
+
+# 3.3 Visualize UMAP'ed Projections with Cluster Assignments ----
+
+umap_kmeans_3_results_tbl %>%
+  mutate(label_text = str_glue("Customer: {STORE_NAME}
+                                 Cluster: {.cluster}")) %>%
+  
+  ggplot(aes(x, y, color = .cluster)) +
+  
+  # Geometries
+  geom_point() +
+  geom_label_repel(aes(label = label_text), size = 2, fill = "#282A36") +
+  
+  # Formatting
+  scale_color_manual(values=c("#2d72d6", "#2dc6d6", "#2dd692")) +
+  labs(title = "Customer Segmentation: 2D Projection",
+       subtitle = "UMAP 2D Projection with K-Means Cluster Assignment",
+       caption = "Conclusion: 3 Customer Segments identified using 2 algorithms") +
+  theme(legend.position = "none")
+
+
+
+```

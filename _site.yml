@@ -9,17 +9,27 @@ navbar:
       href: index.html
     - text: "Journal"
       menu:
-            - text: "01 Tidyverse"
+            - text: "Tidyverse"
               href: 01_tidyverse.html
-            - text: "02 Data Acquisition"
+            - text: "Data Acquisition"
               href: 02_data_acquisition.html
-            - text: "03 Data Wrangling"
+            - text: "Data Wrangling"
               href: 03_data_wrangling.html
-            - text: "04 Data Visualization"
+            - text: "Data Visualization"
               href: 04_data_visualization.html
+            - text: "Machine_learning"
+              href: Machine_learning.html
+            - text: "Supervised_ML"
+              href: Supervised_ML.html
+            - text: "Automated_ML"
+              href: Automated_ML.html
+            - text: "Performance_metrics"
+              href: Performance_metrics.html
+            - text: "Lime"
+              href: Lime.html
     - text: "Class notes"
       href: 05_class_notes.html
     - text: "Links"
       href: 06_links.html
-output_dir: "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+output_dir: "6a62415b43a0268f38f117f076dce135705d7895"
 exclude: ["docks.jpg", "journal_encrypted.html"]

@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Automated_ML</title>
+
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MyLabJournal</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Index</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Journal
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_tidyverse.html">Tidyverse</a>
+    </li>
+    <li>
+      <a href="02_data_acquisition.html">Data Acquisition</a>
+    </li>
+    <li>
+      <a href="03_data_wrangling.html">Data Wrangling</a>
+    </li>
+    <li>
+      <a href="04_data_visualization.html">Data Visualization</a>
+    </li>
+    <li>
+      <a href="Machine_learning.html">Machine_learning</a>
+    </li>
+    <li>
+      <a href="Supervised_ML.html">Supervised_ML</a>
+    </li>
+    <li>
+      <a href="Automated_ML.html">Automated_ML</a>
+    </li>
+    <li>
+      <a href="Performance_metrics.html">Performance_metrics</a>
+    </li>
+    <li>
+      <a href="Lime.html">Lime</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="05_class_notes.html">Class notes</a>
+</li>
+<li>
+  <a href="06_links.html">Links</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Automated_ML</h1>
+
+</div>
+
+
+<div id="automated-machine-learning-with-h2o" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Automated Machine Learning with H2O</h1>
+<div id="challenge" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> Challenge</h2>
+<pre class="r"><code>library(tidyverse)
+library(readxl)
+library(rsample)
+library(recipes)
+library(h2o)
+product_backorders_tbl &lt;- read.csv(&quot;C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/product_backorders.csv&quot;)
+
+# Data split
+
+set.seed(seed = 1113)
+
+split_obj &lt;- rsample::initial_split(product_backorders_tbl, prop = 0.85)
+
+train_product_backorders_tbl &lt;- training(split_obj)
+
+test_product_backorders_readable_tbl  &lt;- testing(split_obj)
+
+
+
+
+
+#2. Specify the response and predictor variables ---
+
+recipe_obj &lt;- recipe(went_on_backorder ~., data = product_backorders_tbl) %&gt;%
+  
+  step_zv(all_predictors()) %&gt;%
+  
+  #step_mutate_at(JobLevel, StockOptionLevel, fn = as.factor) %&gt;%
+  
+  prep()
+
+
+
+train_tbl &lt;- bake(recipe_obj, new_data = train_product_backorders_tbl)
+
+test_tbl  &lt;- bake(recipe_obj, new_data = test_product_backorders_readable_tbl)
+
+
+
+
+
+#3. Run AutoML specifying the stopping criterion ---
+
+h2o.init() #Modelling</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         2 hours 47 minutes 
+##     H2O cluster timezone:       Europe/Berlin 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.36.0.3 
+##     H2O cluster version age:    1 month and 10 days  
+##     H2O cluster name:           H2O_started_from_R_bhava_drs368 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   1.26 GB 
+##     H2O cluster total cores:    8 
+##     H2O cluster allowed cores:  8 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     R Version:                  R version 4.1.1 (2021-08-10)</code></pre>
+<pre class="r"><code>split_h2o &lt;- h2o.splitFrame(as.h2o(train_tbl), ratios = c(0.85), seed = 1234)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>train_h2o &lt;- split_h2o[[1]]
+
+valid_h2o &lt;- split_h2o[[2]]
+
+test_h2o  &lt;- as.h2o(test_tbl)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>y &lt;- &quot;went_on_backorder&quot; 
+
+x &lt;- setdiff(names(train_h2o), y) 
+
+automl_models_h2o &lt;- h2o.automl(
+  x = x,
+  y = y,
+  training_frame = train_h2o,
+  validation_frame = valid_h2o,
+  leaderboard_frame = test_h2o,
+  max_runtime_secs = 30,
+  nfolds = 5
+)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+## 17:03:13.510: User specified a validation frame with cross-validation still enabled. Please note that the models will still be validated using cross-validation only, the validation frame will be used to provide purely informative validation metrics on the trained models.
+## 17:03:13.532: AutoML: XGBoost is not available; skipping it.
+## 17:03:13.569: Step &#39;best_of_family_xgboost&#39; not defined in provider &#39;StackedEnsemble&#39;: skipping it.
+## 17:03:13.569: Step &#39;all_xgboost&#39; not defined in provider &#39;StackedEnsemble&#39;: skipping it.
+  |                                                                            
+  |======                                                                |   9%
+  |                                                                            
+  |===========                                                           |  15%
+  |                                                                            
+  |=============                                                         |  19%
+  |                                                                            
+  |================                                                      |  23%
+  |                                                                            
+  |==================                                                    |  26%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |=========================                                             |  36%
+  |                                                                            
+  |=============================                                         |  41%
+  |                                                                            
+  |=================================                                     |  47%
+  |                                                                            
+  |=====================================                                 |  53%
+  |                                                                            
+  |========================================                              |  57%
+  |                                                                            
+  |==========================================                            |  61%
+  |                                                                            
+  |=============================================                         |  65%
+  |                                                                            
+  |================================================                      |  69%
+  |                                                                            
+  |===================================================                   |  73%
+  |                                                                            
+  |======================================================                |  77%
+  |                                                                            
+  |=========================================================             |  81%
+  |                                                                            
+  |============================================================          |  85%
+  |                                                                            
+  |==============================================================        |  89%
+  |                                                                            
+  |=================================================================     |  93%
+  |                                                                            
+  |====================================================================  |  96%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>#4. View the leader board
+typeof(automl_models_h2o)</code></pre>
+<pre><code>## [1] &quot;S4&quot;</code></pre>
+<pre class="r"><code>slotNames(automl_models_h2o)</code></pre>
+<pre><code>## [1] &quot;project_name&quot;   &quot;leader&quot;         &quot;leaderboard&quot;    &quot;event_log&quot;     
+## [5] &quot;modeling_steps&quot; &quot;training_info&quot;</code></pre>
+<pre class="r"><code>automl_models_h2o@leaderboard</code></pre>
+<pre><code>##                                                   model_id       auc   logloss
+## 1 StackedEnsemble_BestOfFamily_1_AutoML_23_20220327_170313 0.9443992 0.1817906
+## 2                          GBM_1_AutoML_23_20220327_170313 0.9443402 0.1816339
+## 3 StackedEnsemble_BestOfFamily_2_AutoML_23_20220327_170313 0.9440372 0.1820239
+## 4                          GBM_2_AutoML_23_20220327_170313 0.9398057 0.2321127
+## 5                          GBM_3_AutoML_23_20220327_170313 0.9294012 0.2591099
+## 6                          GBM_4_AutoML_23_20220327_170313 0.9267480 0.2724056
+##       aucpr mean_per_class_error      rmse        mse
+## 1 0.7308308            0.1468463 0.2338764 0.05469817
+## 2 0.7306215            0.1466474 0.2337614 0.05464437
+## 3 0.7311558            0.1803690 0.2339669 0.05474049
+## 4 0.7032615            0.1541900 0.2585677 0.06685726
+## 5 0.6604786            0.1834286 0.2739799 0.07506497
+## 6 0.6804969            0.1707600 0.2806343 0.07875559
+## 
+## [8 rows x 7 columns]</code></pre>
+<pre class="r"><code>automl_models_h2o@leader</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: stackedensemble
+## Model ID:  StackedEnsemble_BestOfFamily_1_AutoML_23_20220327_170313 
+## Number of Base Models: 2
+## 
+## Base Models (count by algorithm type):
+## 
+## gbm glm 
+##   1   1 
+## 
+## Metalearner:
+## 
+## Metalearner algorithm: glm
+## Metalearner cross-validation fold assignment:
+##   Fold assignment scheme: AUTO
+##   Number of folds: 5
+##   Fold column: NULL
+## Metalearner hyperparameters: 
+## 
+## 
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on training data. **
+## 
+## MSE:  0.03421566
+## RMSE:  0.1849748
+## LogLoss:  0.1184467
+## Mean Per-Class Error:  0.1151831
+## AUC:  0.9811053
+## AUCPR:  0.8816222
+## Gini:  0.9622106
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No  Yes    Error       Rate
+## No     8600  197 0.022394  =197/8797
+## Yes     240  914 0.207972  =240/1154
+## Totals 8840 1111 0.043915  =437/9951
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.458540    0.807064 160
+## 2                       max f2  0.206293    0.857979 244
+## 3                 max f0point5  0.559905    0.830288 129
+## 4                 max accuracy  0.458540    0.956085 160
+## 5                max precision  0.982126    1.000000   0
+## 6                   max recall  0.015147    1.000000 361
+## 7              max specificity  0.982126    1.000000   0
+## 8             max absolute_mcc  0.458540    0.782476 160
+## 9   max min_per_class_accuracy  0.215107    0.932932 240
+## 10 max mean_per_class_accuracy  0.197887    0.935085 247
+## 11                     max tns  0.982126 8797.000000   0
+## 12                     max fns  0.982126 1152.000000   0
+## 13                     max fps  0.000280 8797.000000 399
+## 14                     max tps  0.015147 1154.000000 361
+## 15                     max tnr  0.982126    1.000000   0
+## 16                     max fnr  0.982126    0.998267   0
+## 17                     max fpr  0.000280    1.000000 399
+## 18                     max tpr  0.015147    1.000000 361
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on validation data. **
+## 
+## MSE:  0.05120127
+## RMSE:  0.226277
+## LogLoss:  0.1705482
+## Mean Per-Class Error:  0.1291504
+## AUC:  0.9496758
+## AUCPR:  0.7534757
+## Gini:  0.8993517
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##          No Yes    Error       Rate
+## No     1968 136 0.064639  =136/2104
+## Yes      55 229 0.193662    =55/284
+## Totals 2023 365 0.079983  =191/2388
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold       value idx
+## 1                       max f1  0.255215    0.705701 208
+## 2                       max f2  0.136536    0.786552 259
+## 3                 max f0point5  0.674559    0.725636  91
+## 4                 max accuracy  0.407624    0.929229 162
+## 5                max precision  0.971466    1.000000   0
+## 6                   max recall  0.001156    1.000000 394
+## 7              max specificity  0.971466    1.000000   0
+## 8             max absolute_mcc  0.255215    0.667215 208
+## 9   max min_per_class_accuracy  0.138115    0.890684 258
+## 10 max mean_per_class_accuracy  0.136536    0.894286 259
+## 11                     max tns  0.971466 2104.000000   0
+## 12                     max fns  0.971466  281.000000   0
+## 13                     max fps  0.000261 2104.000000 399
+## 14                     max tps  0.001156  284.000000 394
+## 15                     max tnr  0.971466    1.000000   0
+## 16                     max fnr  0.971466    0.989437   0
+## 17                     max fpr  0.000261    1.000000 399
+## 18                     max tpr  0.001156    1.000000 394
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.05136841
+## RMSE:  0.226646
+## LogLoss:  0.1715596
+## Mean Per-Class Error:  0.1492886
+## AUC:  0.9502971
+## AUCPR:  0.7395814
+## Gini:  0.9005942
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##           No  Yes    Error         Rate
+## No     11485  684 0.056208   =684/12169
+## Yes      397 1241 0.242369    =397/1638
+## Totals 11882 1925 0.078294  =1081/13807
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold        value idx
+## 1                       max f1  0.321161     0.696604 207
+## 2                       max f2  0.179711     0.777385 260
+## 3                 max f0point5  0.547712     0.720882 136
+## 4                 max accuracy  0.512045     0.930253 146
+## 5                max precision  0.980340     1.000000   0
+## 6                   max recall  0.002343     1.000000 394
+## 7              max specificity  0.980340     1.000000   0
+## 8             max absolute_mcc  0.236526     0.657019 237
+## 9   max min_per_class_accuracy  0.127357     0.885529 284
+## 10 max mean_per_class_accuracy  0.119513     0.888536 288
+## 11                     max tns  0.980340 12169.000000   0
+## 12                     max fns  0.980340  1634.000000   0
+## 13                     max fps  0.000347 12169.000000 399
+## 14                     max tps  0.002343  1638.000000 394
+## 15                     max tnr  0.980340     1.000000   0
+## 16                     max fnr  0.980340     0.997558   0
+## 17                     max fpr  0.000347     1.000000 399
+## 18                     max tpr  0.002343     1.000000 394
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`</code></pre>
+</div>
+<div id="business-case" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Business case</h2>
+<pre class="r"><code># Load data
+library(tidyverse)
+library(readxl)
+library(dplyr)
+
+employee_attrition_tbl &lt;- read_csv(&quot;00_data/datasets-1067-1925-WA_Fn-UseC_-HR-Employee-Attrition.csv&quot;)
+definitions_raw_tbl    &lt;- read_excel(&quot;00_data/data_definitions.xlsx&quot;, sheet = 1, col_names = FALSE)
+#View(definitions_raw_tbl)
+
+# Data preparation ----
+# Human readable
+
+definitions_tbl &lt;- definitions_raw_tbl %&gt;% 
+  fill(...1, .direction = &quot;down&quot;) %&gt;%
+  filter(!is.na(...2)) %&gt;%
+  separate(...2, into = c(&quot;key&quot;, &quot;value&quot;), sep = &quot; &#39;&quot;, remove = TRUE) %&gt;%
+  rename(column_name = ...1) %&gt;%
+  mutate(key = as.numeric(key)) %&gt;%
+  mutate(value = value %&gt;% str_replace(pattern = &quot;&#39;&quot;, replacement = &quot;&quot;)) 
+definitions_tbl</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["column_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["key"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["value"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"Education","2":"1","3":"Below College"},{"1":"Education","2":"2","3":"College"},{"1":"Education","2":"3","3":"Bachelor"},{"1":"Education","2":"4","3":"Master"},{"1":"Education","2":"5","3":"Doctor"},{"1":"EnvironmentSatisfaction","2":"1","3":"Low"},{"1":"EnvironmentSatisfaction","2":"2","3":"Medium"},{"1":"EnvironmentSatisfaction","2":"3","3":"High"},{"1":"EnvironmentSatisfaction","2":"4","3":"Very High"},{"1":"JobInvolvement","2":"1","3":"Low"},{"1":"JobInvolvement","2":"2","3":"Medium"},{"1":"JobInvolvement","2":"3","3":"High"},{"1":"JobInvolvement","2":"4","3":"Very High"},{"1":"JobSatisfaction","2":"1","3":"Low"},{"1":"JobSatisfaction","2":"2","3":"Medium"},{"1":"JobSatisfaction","2":"3","3":"High"},{"1":"JobSatisfaction","2":"4","3":"Very High"},{"1":"PerformanceRating","2":"1","3":"Low"},{"1":"PerformanceRating","2":"2","3":"Good"},{"1":"PerformanceRating","2":"3","3":"Excellent"},{"1":"PerformanceRating","2":"4","3":"Outstanding"},{"1":"RelationshipSatisfaction","2":"1","3":"Low"},{"1":"RelationshipSatisfaction","2":"2","3":"Medium"},{"1":"RelationshipSatisfaction","2":"3","3":"High"},{"1":"RelationshipSatisfaction","2":"4","3":"Very High"},{"1":"WorkLifeBalance","2":"1","3":"Bad"},{"1":"WorkLifeBalance","2":"2","3":"Good"},{"1":"WorkLifeBalance","2":"3","3":"Better"},{"1":"WorkLifeBalance","2":"4","3":"Best"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># DATA PREPARATION ----
+# Human readable ----
+
+definitions_list &lt;- definitions_tbl %&gt;% 
+  
+  # Mapping over lists
+  
+  # Split into multiple tibbles
+  split(.$column_name) %&gt;%
+  # Remove column_name
+  map(~ select(., -column_name)) %&gt;%
+  # Convert to factors because they are ordered an we want to maintain that order
+  map(~ mutate(., value = as_factor(value))) 
+
+# definitions_list[[1]]
+definitions_list[[&quot;Education&quot;]]</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["key"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["value"],"name":[2],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"Below College"},{"1":"2","2":"College"},{"1":"3","2":"Bachelor"},{"1":"4","2":"Master"},{"1":"5","2":"Doctor"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># Rename columns
+for (i in seq_along(definitions_list)) {
+  list_name &lt;- names(definitions_list)[i]
+  colnames(definitions_list[[i]]) &lt;- c(list_name, paste0(list_name, &quot;_value&quot;))
+}
+
+definitions_list[[&quot;Education&quot;]]</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Education"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Education_value"],"name":[2],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"Below College"},{"1":"2","2":"College"},{"1":"3","2":"Bachelor"},{"1":"4","2":"Master"},{"1":"5","2":"Doctor"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>data_merged_tbl &lt;- list(HR_Data = employee_attrition_tbl) %&gt;%
+  
+  # Join everything
+  append(definitions_list, after = 1) %&gt;%
+  reduce(left_join) %&gt;%
+  
+  # Remove unnecessary columns
+  select(-one_of(names(definitions_list))) %&gt;%
+  
+  # Format the &quot;_value&quot;
+  set_names(str_replace_all(names(.), pattern = &quot;_value&quot;, replacement = &quot;&quot;)) %&gt;%
+  
+  # Resort
+  select(sort(names(.))) 
+
+# Return only unique values of BusinessTravel
+data_merged_tbl %&gt;% 
+  distinct(BusinessTravel)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["BusinessTravel"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"Travel_Rarely"},{"1":"Travel_Frequently"},{"1":"Non-Travel"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code># 
+# data_merged_tbl %&gt;%
+#   mutate_if(is.character, as.factor) %&gt;%
+ # glimpse()
+  
+  data_merged_tbl %&gt;%
+  mutate_if(is.character, as.factor) %&gt;%
+  select_if(is.factor) %&gt;%
+  glimpse()</code></pre>
+<pre><code>## Rows: 1,470
+## Columns: 16
+## $ Attrition                &lt;fct&gt; Yes, No, Yes, No, No, No, No, No, No, No, No,~
+## $ BusinessTravel           &lt;fct&gt; Travel_Rarely, Travel_Frequently, Travel_Rare~
+## $ Department               &lt;fct&gt; Sales, Research &amp; Development, Research &amp; Dev~
+## $ Education                &lt;fct&gt; College, Below College, College, Master, Belo~
+## $ EducationField           &lt;fct&gt; Life Sciences, Life Sciences, Other, Life Sci~
+## $ EnvironmentSatisfaction  &lt;fct&gt; Medium, High, Very High, Very High, Low, Very~
+## $ Gender                   &lt;fct&gt; Female, Male, Male, Female, Male, Male, Femal~
+## $ JobInvolvement           &lt;fct&gt; High, Medium, Medium, High, High, High, Very ~
+## $ JobRole                  &lt;fct&gt; Sales Executive, Research Scientist, Laborato~
+## $ JobSatisfaction          &lt;fct&gt; Very High, Medium, High, High, Medium, Very H~
+## $ MaritalStatus            &lt;fct&gt; Single, Married, Single, Married, Married, Si~
+## $ Over18                   &lt;fct&gt; Y, Y, Y, Y, Y, Y, Y, Y, Y, Y, Y, Y, Y, Y, Y, ~
+## $ OverTime                 &lt;fct&gt; Yes, No, Yes, Yes, No, No, Yes, No, No, No, N~
+## $ PerformanceRating        &lt;fct&gt; Excellent, Outstanding, Excellent, Excellent,~
+## $ RelationshipSatisfaction &lt;fct&gt; Low, Very High, Medium, High, Very High, High~
+## $ WorkLifeBalance          &lt;fct&gt; Bad, Better, Better, Better, Better, Good, Go~</code></pre>
+<pre class="r"><code>data_merged_tbl %&gt;%
+  mutate_if(is.character, as.factor) %&gt;%
+  select_if(is.factor) %&gt;%
+  map(levels)</code></pre>
+<pre><code>## $Attrition
+## [1] &quot;No&quot;  &quot;Yes&quot;
+## 
+## $BusinessTravel
+## [1] &quot;Non-Travel&quot;        &quot;Travel_Frequently&quot; &quot;Travel_Rarely&quot;    
+## 
+## $Department
+## [1] &quot;Human Resources&quot;        &quot;Research &amp; Development&quot; &quot;Sales&quot;                 
+## 
+## $Education
+## [1] &quot;Below College&quot; &quot;College&quot;       &quot;Bachelor&quot;      &quot;Master&quot;       
+## [5] &quot;Doctor&quot;       
+## 
+## $EducationField
+## [1] &quot;Human Resources&quot;  &quot;Life Sciences&quot;    &quot;Marketing&quot;        &quot;Medical&quot;         
+## [5] &quot;Other&quot;            &quot;Technical Degree&quot;
+## 
+## $EnvironmentSatisfaction
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $Gender
+## [1] &quot;Female&quot; &quot;Male&quot;  
+## 
+## $JobInvolvement
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $JobRole
+## [1] &quot;Healthcare Representative&quot; &quot;Human Resources&quot;          
+## [3] &quot;Laboratory Technician&quot;     &quot;Manager&quot;                  
+## [5] &quot;Manufacturing Director&quot;    &quot;Research Director&quot;        
+## [7] &quot;Research Scientist&quot;        &quot;Sales Executive&quot;          
+## [9] &quot;Sales Representative&quot;     
+## 
+## $JobSatisfaction
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $MaritalStatus
+## [1] &quot;Divorced&quot; &quot;Married&quot;  &quot;Single&quot;  
+## 
+## $Over18
+## [1] &quot;Y&quot;
+## 
+## $OverTime
+## [1] &quot;No&quot;  &quot;Yes&quot;
+## 
+## $PerformanceRating
+## [1] &quot;Low&quot;         &quot;Good&quot;        &quot;Excellent&quot;   &quot;Outstanding&quot;
+## 
+## $RelationshipSatisfaction
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $WorkLifeBalance
+## [1] &quot;Bad&quot;    &quot;Good&quot;   &quot;Better&quot; &quot;Best&quot;</code></pre>
+<pre class="r"><code>data_processed_tbl &lt;- data_merged_tbl %&gt;%        
+  mutate_if(is.character, as.factor) %&gt;%
+  mutate(
+    BusinessTravel = BusinessTravel %&gt;% fct_relevel(&quot;Non-Travel&quot;, 
+                                                    &quot;Travel_Rarely&quot;, 
+                                                    &quot;Travel_Frequently&quot;),
+    MaritalStatus  = MaritalStatus %&gt;% fct_relevel(&quot;Single&quot;, 
+                                                   &quot;Married&quot;, 
+                                                   &quot;Divorced&quot;)
+  )
+
+data_processed_tbl %&gt;% 
+  select_if(is.factor) %&gt;% 
+  map(levels)</code></pre>
+<pre><code>## $Attrition
+## [1] &quot;No&quot;  &quot;Yes&quot;
+## 
+## $BusinessTravel
+## [1] &quot;Non-Travel&quot;        &quot;Travel_Rarely&quot;     &quot;Travel_Frequently&quot;
+## 
+## $Department
+## [1] &quot;Human Resources&quot;        &quot;Research &amp; Development&quot; &quot;Sales&quot;                 
+## 
+## $Education
+## [1] &quot;Below College&quot; &quot;College&quot;       &quot;Bachelor&quot;      &quot;Master&quot;       
+## [5] &quot;Doctor&quot;       
+## 
+## $EducationField
+## [1] &quot;Human Resources&quot;  &quot;Life Sciences&quot;    &quot;Marketing&quot;        &quot;Medical&quot;         
+## [5] &quot;Other&quot;            &quot;Technical Degree&quot;
+## 
+## $EnvironmentSatisfaction
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $Gender
+## [1] &quot;Female&quot; &quot;Male&quot;  
+## 
+## $JobInvolvement
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $JobRole
+## [1] &quot;Healthcare Representative&quot; &quot;Human Resources&quot;          
+## [3] &quot;Laboratory Technician&quot;     &quot;Manager&quot;                  
+## [5] &quot;Manufacturing Director&quot;    &quot;Research Director&quot;        
+## [7] &quot;Research Scientist&quot;        &quot;Sales Executive&quot;          
+## [9] &quot;Sales Representative&quot;     
+## 
+## $JobSatisfaction
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $MaritalStatus
+## [1] &quot;Single&quot;   &quot;Married&quot;  &quot;Divorced&quot;
+## 
+## $Over18
+## [1] &quot;Y&quot;
+## 
+## $OverTime
+## [1] &quot;No&quot;  &quot;Yes&quot;
+## 
+## $PerformanceRating
+## [1] &quot;Low&quot;         &quot;Good&quot;        &quot;Excellent&quot;   &quot;Outstanding&quot;
+## 
+## $RelationshipSatisfaction
+## [1] &quot;Low&quot;       &quot;Medium&quot;    &quot;High&quot;      &quot;Very High&quot;
+## 
+## $WorkLifeBalance
+## [1] &quot;Bad&quot;    &quot;Good&quot;   &quot;Better&quot; &quot;Best&quot;</code></pre>
+<pre class="r"><code>process_hr_data_readable &lt;- function(data, definitions_tbl) {
+  
+  definitions_list &lt;- definitions_tbl %&gt;%
+    fill(...1, .direction = &quot;down&quot;) %&gt;%
+    filter(!is.na(...2)) %&gt;%
+    separate(...2, into = c(&quot;key&quot;, &quot;value&quot;), sep = &quot; &#39;&quot;, remove = TRUE) %&gt;%
+    rename(column_name = ...1) %&gt;%
+    mutate(key = as.numeric(key)) %&gt;%
+    mutate(value = value %&gt;% str_replace(pattern = &quot;&#39;&quot;, replacement = &quot;&quot;)) %&gt;%
+    split(.$column_name) %&gt;%
+    map(~ select(., -column_name)) %&gt;%
+    map(~ mutate(., value = as_factor(value))) 
+  
+  for (i in seq_along(definitions_list)) {
+    list_name &lt;- names(definitions_list)[i]
+    colnames(definitions_list[[i]]) &lt;- c(list_name, paste0(list_name, &quot;_value&quot;))
+  }
+  
+  data_merged_tbl &lt;- list(HR_Data = data) %&gt;%
+    append(definitions_list, after = 1) %&gt;%
+    reduce(left_join) %&gt;%
+    select(-one_of(names(definitions_list))) %&gt;%
+    set_names(str_replace_all(names(.), pattern = &quot;_value&quot;, 
+                              replacement = &quot;&quot;)) %&gt;%
+    select(sort(names(.))) %&gt;%
+    mutate_if(is.character, as.factor) %&gt;%
+    mutate(
+      BusinessTravel = BusinessTravel %&gt;% fct_relevel(&quot;Non-Travel&quot;, 
+                                                      &quot;Travel_Rarely&quot;, 
+                                                      &quot;Travel_Frequently&quot;),
+      MaritalStatus  = MaritalStatus %&gt;% fct_relevel(&quot;Single&quot;, 
+                                                     &quot;Married&quot;, 
+                                                     &quot;Divorced&quot;)
+    )
+  
+  return(data_merged_tbl)
+  
+}
+#process_hr_data_readable(employee_attrition_tbl, definitions_raw_tbl) %&gt;% 
+ # glimpse()
+## DATA PREPARATION ----
+# Machine readable ----
+
+# libraries
+library(rsample)
+library(recipes)
+
+# Processing pipeline
+# If we had stored our script in an external file
+#source(&quot;00_scripts/data_processing_pipeline.R&quot;)
+
+# If we had our raw data already split into train and test data
+# train_readable_tbl &lt;- process_hr_data_readable(train_raw_tbl, definitions_raw_tbl)
+# test_redable_tbl   &lt;- process_hr_data_readable(test_raw_tbl, definitions_raw_tbl)
+
+employee_attrition_readable_tbl &lt;- process_hr_data_readable(employee_attrition_tbl, definitions_raw_tbl)
+
+# Split into test and train
+set.seed(seed = 1113)
+split_obj &lt;- rsample::initial_split(employee_attrition_readable_tbl, prop = 0.85)
+
+# Assign training and test data
+train_readable_tbl &lt;- training(split_obj)
+test_readable_tbl  &lt;- testing(split_obj)
+
+# Plot Faceted Histgoram function
+
+# To create a function and test it, we can assign our data temporarily to data
+data &lt;- train_readable_tbl 
+
+plot_hist_facet &lt;- function(data, fct_reorder = FALSE, fct_rev = FALSE, 
+                            bins = 10, fill = &quot;#2dc6d6&quot;, color = &quot;white&quot;, 
+                            ncol = 5, scale = &quot;free&quot;) {
+  
+  data_factored &lt;- data %&gt;%
+    
+    # Convert input to make the function fail safe 
+    # (if other content might be provided)
+    mutate_if(is.character, as.factor) %&gt;%
+    mutate_if(is.factor, as.numeric) %&gt;%
+    
+    # Data must be in long format to make facets
+    pivot_longer(cols = everything(),
+                 names_to = &quot;key&quot;,
+                 values_to = &quot;value&quot;,
+                 # set key = factor() to keep the order
+                 names_transform = list(key = forcats::fct_inorder)) 
+  
+  if (fct_reorder) {
+    data_factored &lt;- data_factored %&gt;%
+      mutate(key = as.character(key) %&gt;% as.factor())
+  }
+  
+  if (fct_rev) {
+    data_factored &lt;- data_factored %&gt;%
+      mutate(key = fct_rev(key))
+  }
+  
+  g &lt;- data_factored %&gt;%
+    ggplot(aes(x = value, group = key)) +
+    geom_histogram(bins = bins, fill = fill, color = color) +
+    facet_wrap(~ key, ncol = ncol, scale = scale)
+  
+  return(g)
+  
+}  
+
+# Bring attirtion to the top (alt.: select(Attrition, everything()))
+train_readable_tbl %&gt;% 
+  relocate(Attrition) %&gt;% 
+  plot_hist_facet()  </code></pre>
+<p><img src="Automated_ML_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>#--------------------------
+# Data Preprocessing With Recipes ----
+
+# Plan: Correlation Analysis
+
+# 1. Zero Variance Features ----
+
+recipe_obj &lt;- recipe(Attrition ~ ., data = train_readable_tbl) %&gt;%
+  step_zv(all_predictors())
+
+recipe_obj %&gt;% 
+  prep()</code></pre>
+<pre><code>## Recipe
+## 
+## Inputs:
+## 
+##       role #variables
+##    outcome          1
+##  predictor         34
+## 
+## Training data contained 1249 data points and no missing data.
+## 
+## Operations:
+## 
+## Zero variance filter removed EmployeeCount, Over18, StandardHours [trained]</code></pre>
+<pre class="r"><code># 2. Transformations ---- (for skewed features)
+library(PerformanceAnalytics)  # for skewness  
+
+skewed_feature_names &lt;- train_readable_tbl %&gt;%
+  select(where(is.numeric)) %&gt;%
+  map_df(skewness) %&gt;%
+  pivot_longer(cols = everything(),
+               names_to = &quot;key&quot;,
+               values_to = &quot;value&quot;,
+               names_transform = list(key = forcats::fct_inorder)) %&gt;%
+  arrange(desc(value)) %&gt;%
+  
+  # Let&#39;s set the cutoff value to 0.7 (beccause TrainingTimesLastYear does not seem to be that skewed)
+  filter(value &gt;= 0.7) %&gt;%
+  pull(key) %&gt;%
+  as.character()
+
+train_readable_tbl %&gt;%
+  select(all_of(skewed_feature_names)) %&gt;%
+  plot_hist_facet()</code></pre>
+<p><img src="Automated_ML_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<pre class="r"><code>!skewed_feature_names %in% c(&quot;JobLevel&quot;, &quot;StockOptionLevel&quot;)</code></pre>
+<pre><code>##  [1]  TRUE  TRUE  TRUE  TRUE FALSE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE</code></pre>
+<pre class="r"><code>skewed_feature_names &lt;- train_readable_tbl %&gt;%
+  select(where(is.numeric)) %&gt;%
+  map_df(skewness) %&gt;%
+  pivot_longer(cols = everything(),
+               names_to = &quot;key&quot;,
+               values_to = &quot;value&quot;,
+               names_transform = list(key = forcats::fct_inorder)) %&gt;%
+  arrange(desc(value)) %&gt;%
+  filter(value &gt;= 0.7) %&gt;%
+  filter(!key %in% c(&quot;JobLevel&quot;, &quot;StockOptionLevel&quot;)) %&gt;%
+  pull(key) %&gt;%
+  as.character()
+
+# We need to convert those columns to factors in the next step
+factor_names &lt;- c(&quot;JobLevel&quot;, &quot;StockOptionLevel&quot;)
+
+recipe_obj &lt;- recipe(Attrition ~ ., data = train_readable_tbl) %&gt;%
+  step_zv(all_predictors()) %&gt;%
+  step_YeoJohnson(skewed_feature_names) %&gt;%
+  step_mutate_at(factor_names, fn = as.factor)
+
+recipe_obj %&gt;% 
+  prep() %&gt;% 
+  bake(train_readable_tbl) %&gt;% 
+  select(skewed_feature_names) %&gt;%
+  plot_hist_facet() </code></pre>
+<p><img src="Automated_ML_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
+<pre class="r"><code># 3. Center and scale
+
+# Plot numeric data
+train_readable_tbl %&gt;% 
+  select(where(is.numeric)) %&gt;% 
+  plot_hist_facet()</code></pre>
+<p><img src="Automated_ML_files/figure-html/unnamed-chunk-2-4.png" width="672" /></p>
+<pre class="r"><code>recipe_obj &lt;- recipe(Attrition ~ ., data = train_readable_tbl) %&gt;%
+  step_zv(all_predictors()) %&gt;%
+  step_YeoJohnson(skewed_feature_names) %&gt;%
+  step_mutate_at(factor_names, fn = as.factor) %&gt;%
+  step_center(all_numeric()) %&gt;%
+  step_scale(all_numeric())
+
+# You can compare the means attribute before and after prepping the recipe
+recipe_obj$steps[[4]] # before prep</code></pre>
+<pre><code>## $terms
+## &lt;list_of&lt;quosure&gt;&gt;
+## 
+## [[1]]
+## &lt;quosure&gt;
+## expr: ^all_numeric()
+## env:  0x000000002ddd06f8
+## 
+## 
+## $role
+## [1] NA
+## 
+## $trained
+## [1] FALSE
+## 
+## $means
+## NULL
+## 
+## $na_rm
+## [1] TRUE
+## 
+## $skip
+## [1] FALSE
+## 
+## $id
+## [1] &quot;center_GWd48&quot;
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;step_center&quot; &quot;step&quot;</code></pre>
+<pre class="r"><code>prepared_recipe &lt;- recipe_obj %&gt;% prep()
+prepared_recipe$steps[[4]]</code></pre>
+<pre><code>## $terms
+## &lt;list_of&lt;quosure&gt;&gt;
+## 
+## [[1]]
+## &lt;quosure&gt;
+## expr: ^all_numeric()
+## env:  0x000000002ddd06f8
+## 
+## 
+## $role
+## [1] NA
+## 
+## $trained
+## [1] TRUE
+## 
+## $means
+##                     Age               DailyRate        DistanceFromHome 
+##            3.689672e+01            7.978519e+02            2.009472e+00 
+##          EmployeeNumber              HourlyRate           MonthlyIncome 
+##            1.039169e+03            6.595757e+01            3.926886e+00 
+##             MonthlyRate      NumCompaniesWorked       PercentSalaryHike 
+##            1.447811e+04            1.050292e+00            6.783763e-01 
+##       TotalWorkingYears   TrainingTimesLastYear          YearsAtCompany 
+##            3.352732e+00            2.786229e+00            2.011652e+00 
+##      YearsInCurrentRole YearsSinceLastPromotion    YearsWithCurrManager 
+##            1.727181e+00            5.225350e-01            1.709616e+00 
+## 
+## $na_rm
+## [1] TRUE
+## 
+## $skip
+## [1] FALSE
+## 
+## $id
+## [1] &quot;center_GWd48&quot;
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;step_center&quot; &quot;step&quot;</code></pre>
+<pre class="r"><code>prepared_recipe %&gt;%
+  bake(new_data = train_readable_tbl) %&gt;%
+  select(where(is.numeric)) %&gt;% 
+  plot_hist_facet()</code></pre>
+<p><img src="Automated_ML_files/figure-html/unnamed-chunk-2-5.png" width="672" /></p>
+<pre class="r"><code># 4. Dummy variables ----
+
+recipe_obj &lt;- recipe(Attrition ~ ., data = train_readable_tbl) %&gt;%
+  step_zv(all_predictors()) %&gt;%
+  step_YeoJohnson(skewed_feature_names) %&gt;%
+  step_mutate_at(factor_names, fn = as.factor) %&gt;%
+  step_center(all_numeric()) %&gt;%
+  step_scale(all_numeric()) %&gt;%
+  step_dummy(all_nominal()) %&gt;% 
+  
+  # prepare the final recipe
+  prep()
+train_tbl &lt;- bake(recipe_obj, new_data = train_readable_tbl)
+
+#train_tbl %&gt;% glimpse()
+
+test_tbl &lt;- bake(recipe_obj, new_data = test_readable_tbl)</code></pre>
+<pre class="r"><code># H2O modeling
+library(h2o)
+library(readxl)
+
+employee_attrition_tbl          &lt;- read_csv(&quot;00_data/datasets-1067-1925-WA_Fn-UseC_-HR-Employee-Attrition.csv&quot;)
+definitions_raw_tbl             &lt;- read_excel(&quot;00_data/data_definitions.xlsx&quot;, sheet = 1, col_names = FALSE)
+employee_attrition_readable_tbl &lt;- process_hr_data_readable(employee_attrition_tbl, definitions_raw_tbl)
+set.seed(seed = 1113)
+split_obj                       &lt;- rsample::initial_split(employee_attrition_readable_tbl, prop = 0.85)
+train_readable_tbl              &lt;- training(split_obj)
+test_readable_tbl               &lt;- testing(split_obj)
+
+recipe_obj &lt;- recipe(Attrition ~., data = train_readable_tbl) %&gt;% 
+  step_zv(all_predictors()) %&gt;% 
+  step_mutate_at(JobLevel, StockOptionLevel, fn = as.factor) %&gt;% 
+  prep()
+
+train_tbl &lt;- bake(recipe_obj, new_data = train_readable_tbl)
+test_tbl  &lt;- bake(recipe_obj, new_data = test_readable_tbl)
+
+# Modeling
+h2o.init()</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         2 hours 36 minutes 
+##     H2O cluster timezone:       Europe/Berlin 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.36.0.3 
+##     H2O cluster version age:    1 month and 12 days  
+##     H2O cluster name:           H2O_started_from_R_bhava_drs368 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   1.41 GB 
+##     H2O cluster total cores:    8 
+##     H2O cluster allowed cores:  8 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     R Version:                  R version 4.1.1 (2021-08-10)</code></pre>
+<pre class="r"><code># Split data into a training and a validation data frame
+# Setting the seed is just for reproducability
+split_h2o &lt;- h2o.splitFrame(as.h2o(train_tbl), ratios = c(0.85), seed = 1234)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>train_h2o &lt;- split_h2o[[1]]
+valid_h2o &lt;- split_h2o[[2]]
+test_h2o  &lt;- as.h2o(test_tbl)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code># Set the target and predictors
+y &lt;- &quot;Attrition&quot;
+x &lt;- setdiff(names(train_h2o), y)
+
+#?h2o.automl
+
+automl_models_h2o &lt;- h2o.automl(
+  x = x,
+  y = y,
+  training_frame    = train_h2o,
+  validation_frame  = valid_h2o,
+  leaderboard_frame = test_h2o,
+  max_runtime_secs  = 30,
+  nfolds            = 5 
+)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |                                                                      |   1%
+## 01:45:04.341: User specified a validation frame with cross-validation still enabled. Please note that the models will still be validated using cross-validation only, the validation frame will be used to provide purely informative validation metrics on the trained models.
+## 01:45:04.373: AutoML: XGBoost is not available; skipping it.
+## 01:45:04.377: Step &#39;best_of_family_xgboost&#39; not defined in provider &#39;StackedEnsemble&#39;: skipping it.
+## 01:45:04.377: Step &#39;all_xgboost&#39; not defined in provider &#39;StackedEnsemble&#39;: skipping it.
+  |                                                                            
+  |===                                                                   |   4%
+  |                                                                            
+  |======                                                                |   8%
+  |                                                                            
+  |========                                                              |  12%
+  |                                                                            
+  |===========                                                           |  15%
+  |                                                                            
+  |=============                                                         |  19%
+  |                                                                            
+  |================                                                      |  22%
+  |                                                                            
+  |===================                                                   |  26%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |========================                                              |  34%
+  |                                                                            
+  |===========================                                           |  38%
+  |                                                                            
+  |=============================                                         |  42%
+  |                                                                            
+  |================================                                      |  46%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |=====================================                                 |  53%
+  |                                                                            
+  |========================================                              |  57%
+  |                                                                            
+  |===========================================                           |  61%
+  |                                                                            
+  |==============================================                        |  65%
+  |                                                                            
+  |================================================                      |  69%
+  |                                                                            
+  |===================================================                   |  73%
+  |                                                                            
+  |======================================================                |  77%
+  |                                                                            
+  |========================================================              |  81%
+  |                                                                            
+  |=================================================================     |  93%
+  |                                                                            
+  |====================================================================  |  97%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>typeof(automl_models_h2o)</code></pre>
+<pre><code>## [1] &quot;S4&quot;</code></pre>
+<pre class="r"><code>slotNames(automl_models_h2o)</code></pre>
+<pre><code>## [1] &quot;project_name&quot;   &quot;leader&quot;         &quot;leaderboard&quot;    &quot;event_log&quot;     
+## [5] &quot;modeling_steps&quot; &quot;training_info&quot;</code></pre>
+<pre class="r"><code>automl_models_h2o@leaderboard</code></pre>
+<pre><code>##                                                 model_id       auc   logloss
+## 1    StackedEnsemble_AllModels_2_AutoML_7_20220329_14504 0.8597843 0.3443007
+## 2    StackedEnsemble_AllModels_1_AutoML_7_20220329_14504 0.8595275 0.3452346
+## 3 StackedEnsemble_BestOfFamily_2_AutoML_7_20220329_14504 0.8595275 0.3447759
+## 4 StackedEnsemble_BestOfFamily_3_AutoML_7_20220329_14504 0.8590139 0.3447459
+## 5 StackedEnsemble_BestOfFamily_4_AutoML_7_20220329_14504 0.8578582 0.3457950
+## 6    StackedEnsemble_AllModels_3_AutoML_7_20220329_14504 0.8568310 0.3498025
+##       aucpr mean_per_class_error      rmse       mse
+## 1 0.7208165            0.2299692 0.3207133 0.1028570
+## 2 0.7175280            0.2214304 0.3209348 0.1029992
+## 3 0.7175280            0.2214304 0.3202003 0.1025282
+## 4 0.7153553            0.2214304 0.3203905 0.1026501
+## 5 0.7117997            0.2214304 0.3207222 0.1028627
+## 6 0.7001227            0.2098100 0.3233679 0.1045668
+## 
+## [34 rows x 7 columns]</code></pre>
+<pre class="r"><code>automl_models_h2o@leader</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: stackedensemble
+## Model ID:  StackedEnsemble_AllModels_2_AutoML_7_20220329_14504 
+## Number of Base Models: 9
+## 
+## Base Models (count by algorithm type):
+## 
+## deeplearning          drf          gbm          glm 
+##            1            2            5            1 
+## 
+## Metalearner:
+## 
+## Metalearner algorithm: glm
+## Metalearner cross-validation fold assignment:
+##   Fold assignment scheme: AUTO
+##   Number of folds: 5
+##   Fold column: NULL
+## Metalearner hyperparameters: 
+## 
+## 
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on training data. **
+## 
+## MSE:  0.05642237
+## RMSE:  0.2375339
+## LogLoss:  0.2099596
+## Mean Per-Class Error:  0.1390078
+## AUC:  0.9368182
+## AUCPR:  0.852407
+## Gini:  0.8736364
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error      Rate
+## No     885  24 0.026403   =24/909
+## Yes     39 116 0.251613   =39/155
+## Totals 924 140 0.059211  =63/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.356598   0.786441 116
+## 2                       max f2  0.199584   0.795991 179
+## 3                 max f0point5  0.496801   0.850091  81
+## 4                 max accuracy  0.389523   0.941729 108
+## 5                max precision  0.967387   1.000000   0
+## 6                   max recall  0.005948   1.000000 389
+## 7              max specificity  0.967387   1.000000   0
+## 8             max absolute_mcc  0.356598   0.753487 116
+## 9   max min_per_class_accuracy  0.193099   0.877419 184
+## 10 max mean_per_class_accuracy  0.199584   0.884329 179
+## 11                     max tns  0.967387 909.000000   0
+## 12                     max fns  0.967387 154.000000   0
+## 13                     max fps  0.000750 909.000000 399
+## 14                     max tps  0.005948 155.000000 389
+## 15                     max tnr  0.967387   1.000000   0
+## 16                     max fnr  0.967387   0.993548   0
+## 17                     max fpr  0.000750   1.000000 399
+## 18                     max tpr  0.005948   1.000000 389
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on validation data. **
+## 
+## MSE:  0.1021995
+## RMSE:  0.3196866
+## LogLoss:  0.3363744
+## Mean Per-Class Error:  0.2016649
+## AUC:  0.8696742
+## AUCPR:  0.7206884
+## Gini:  0.7393484
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error     Rate
+## No     138   9 0.061224   =9/147
+## Yes     13  25 0.342105   =13/38
+## Totals 151  34 0.118919  =22/185
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.377957   0.694444  33
+## 2                       max f2  0.091811   0.711382  93
+## 3                 max f0point5  0.485715   0.720339  19
+## 4                 max accuracy  0.377957   0.881081  33
+## 5                max precision  0.924801   1.000000   0
+## 6                   max recall  0.018841   1.000000 146
+## 7              max specificity  0.924801   1.000000   0
+## 8             max absolute_mcc  0.377957   0.622382  33
+## 9   max min_per_class_accuracy  0.168031   0.775510  62
+## 10 max mean_per_class_accuracy  0.293772   0.807644  40
+## 11                     max tns  0.924801 147.000000   0
+## 12                     max fns  0.924801  37.000000   0
+## 13                     max fps  0.001698 147.000000 184
+## 14                     max tps  0.018841  38.000000 146
+## 15                     max tnr  0.924801   1.000000   0
+## 16                     max fnr  0.924801   0.973684   0
+## 17                     max fpr  0.001698   1.000000 184
+## 18                     max tpr  0.018841   1.000000 146
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.0853256
+## RMSE:  0.2921055
+## LogLoss:  0.3016591
+## Mean Per-Class Error:  0.2186735
+## AUC:  0.8385677
+## AUCPR:  0.6095316
+## Gini:  0.6771355
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error       Rate
+## No     834  75 0.082508    =75/909
+## Yes     55 100 0.354839    =55/155
+## Totals 889 175 0.122180  =130/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.279731   0.606061 138
+## 2                       max f2  0.249402   0.646341 153
+## 3                 max f0point5  0.440300   0.664137  82
+## 4                 max accuracy  0.440300   0.898496  82
+## 5                max precision  0.966365   1.000000   0
+## 6                   max recall  0.000445   1.000000 399
+## 7              max specificity  0.966365   1.000000   0
+## 8             max absolute_mcc  0.426126   0.535604  86
+## 9   max min_per_class_accuracy  0.157058   0.767742 215
+## 10 max mean_per_class_accuracy  0.249402   0.790230 153
+## 11                     max tns  0.966365 909.000000   0
+## 12                     max fns  0.966365 154.000000   0
+## 13                     max fps  0.000445 909.000000 399
+## 14                     max tps  0.000445 155.000000 399
+## 15                     max tnr  0.966365   1.000000   0
+## 16                     max fnr  0.966365   0.993548   0
+## 17                     max fpr  0.000445   1.000000 399
+## 18                     max tpr  0.000445   1.000000 399
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`</code></pre>
+<pre class="r"><code># Depending on the algorithm, the output will be different
+#h2o.getModel(&quot;model_ml/GBM_grid_1_AutoML_41_20220328_03648_model_3&quot;)
+
+# Extracts and H2O model name by a position so can more easily use h2o.getModel()
+extract_h2o_model_name_by_position &lt;- function(h2o_leaderboard, n = 1, verbose = T) {
+  
+  model_name &lt;- h2o_leaderboard %&gt;%
+    as.tibble() %&gt;%
+    slice(n) %&gt;%
+    pull(model_id)
+  
+  if (verbose) message(model_name)
+  
+  return(model_name)
+  
+}
+
+automl_models_h2o@leaderboard %&gt;% 
+  extract_h2o_model_name_by_position(6) %&gt;% 
+  h2o.getModel()</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: stackedensemble
+## Model ID:  StackedEnsemble_AllModels_3_AutoML_7_20220329_14504 
+## Number of Base Models: 27
+## 
+## Base Models (count by algorithm type):
+## 
+## deeplearning          drf          gbm          glm 
+##            4            2           20            1 
+## 
+## Metalearner:
+## 
+## Metalearner algorithm: glm
+## Metalearner cross-validation fold assignment:
+##   Fold assignment scheme: AUTO
+##   Number of folds: 5
+##   Fold column: NULL
+## Metalearner hyperparameters: 
+## 
+## 
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on training data. **
+## 
+## MSE:  0.0452886
+## RMSE:  0.2128112
+## LogLoss:  0.1775085
+## Mean Per-Class Error:  0.1232797
+## AUC:  0.9550623
+## AUCPR:  0.8981525
+## Gini:  0.9101246
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error      Rate
+## No     896  13 0.014301   =13/909
+## Yes     36 119 0.232258   =36/155
+## Totals 932 132 0.046053  =49/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.411658   0.829268 113
+## 2                       max f2  0.271804   0.845960 143
+## 3                 max f0point5  0.490005   0.902439 100
+## 4                 max accuracy  0.490005   0.954887 100
+## 5                max precision  0.980056   1.000000   0
+## 6                   max recall  0.007149   1.000000 384
+## 7              max specificity  0.980056   1.000000   0
+## 8             max absolute_mcc  0.448897   0.808880 107
+## 9   max min_per_class_accuracy  0.186418   0.896774 181
+## 10 max mean_per_class_accuracy  0.271804   0.911356 143
+## 11                     max tns  0.980056 909.000000   0
+## 12                     max fns  0.980056 154.000000   0
+## 13                     max fps  0.000499 909.000000 399
+## 14                     max tps  0.007149 155.000000 384
+## 15                     max tnr  0.980056   1.000000   0
+## 16                     max fnr  0.980056   0.993548   0
+## 17                     max fpr  0.000499   1.000000 399
+## 18                     max tpr  0.007149   1.000000 384
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on validation data. **
+## 
+## MSE:  0.1020925
+## RMSE:  0.3195192
+## LogLoss:  0.3368651
+## Mean Per-Class Error:  0.2182241
+## AUC:  0.8644826
+## AUCPR:  0.7168578
+## Gini:  0.7289653
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error     Rate
+## No     137  10 0.068027  =10/147
+## Yes     14  24 0.368421   =14/38
+## Totals 151  34 0.129730  =24/185
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.400752   0.666667  33
+## 2                       max f2  0.082908   0.705645  95
+## 3                 max f0point5  0.486717   0.708955  23
+## 4                 max accuracy  0.486717   0.870270  23
+## 5                max precision  0.947778   1.000000   0
+## 6                   max recall  0.018288   1.000000 144
+## 7              max specificity  0.947778   1.000000   0
+## 8             max absolute_mcc  0.400752   0.587836  33
+## 9   max min_per_class_accuracy  0.193331   0.763158  56
+## 10 max mean_per_class_accuracy  0.257515   0.803795  46
+## 11                     max tns  0.947778 147.000000   0
+## 12                     max fns  0.947778  37.000000   0
+## 13                     max fps  0.001135 147.000000 184
+## 14                     max tps  0.018288  38.000000 144
+## 15                     max tnr  0.947778   1.000000   0
+## 16                     max fnr  0.947778   0.973684   0
+## 17                     max fpr  0.001135   1.000000 184
+## 18                     max tpr  0.018288   1.000000 144
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.08504808
+## RMSE:  0.29163
+## LogLoss:  0.3000491
+## Mean Per-Class Error:  0.2218248
+## AUC:  0.842152
+## AUCPR:  0.6103475
+## Gini:  0.6843039
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error       Rate
+## No     840  69 0.075908    =69/909
+## Yes     57  98 0.367742    =57/155
+## Totals 897 167 0.118421  =126/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.280710   0.608696 135
+## 2                       max f2  0.158465   0.643939 207
+## 3                 max f0point5  0.417379   0.647986  88
+## 4                 max accuracy  0.417379   0.895677  88
+## 5                max precision  0.970876   1.000000   0
+## 6                   max recall  0.000441   1.000000 399
+## 7              max specificity  0.970876   1.000000   0
+## 8             max absolute_mcc  0.355503   0.544754 109
+## 9   max min_per_class_accuracy  0.144290   0.771177 218
+## 10 max mean_per_class_accuracy  0.249163   0.783779 153
+## 11                     max tns  0.970876 909.000000   0
+## 12                     max fns  0.970876 154.000000   0
+## 13                     max fps  0.000441 909.000000 399
+## 14                     max tps  0.000441 155.000000 399
+## 15                     max tnr  0.970876   1.000000   0
+## 16                     max fnr  0.970876   0.993548   0
+## 17                     max fpr  0.000441   1.000000 399
+## 18                     max tpr  0.000441   1.000000 399
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`</code></pre>
+<pre class="r"><code>#h2o.getModel(&quot;StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425&quot;) %&gt;% 
+ # h2o.saveModel(path = &quot;model_business case/&quot;)
+
+h2o.loadModel(&quot;model_business case/StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425&quot;)</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: stackedensemble
+## Model ID:  StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425 
+## Number of Base Models: 3
+## 
+## Base Models (count by algorithm type):
+## 
+## drf gbm glm 
+##   1   1   1 
+## 
+## Metalearner:
+## 
+## Metalearner algorithm: glm
+## Metalearner cross-validation fold assignment:
+##   Fold assignment scheme: AUTO
+##   Number of folds: 5
+##   Fold column: NULL
+## Metalearner hyperparameters: 
+## 
+## 
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on training data. **
+## 
+## MSE:  0.06490733
+## RMSE:  0.2547692
+## LogLoss:  0.2355832
+## Mean Per-Class Error:  0.1532347
+## AUC:  0.9121828
+## AUCPR:  0.7943757
+## Gini:  0.8243657
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error      Rate
+## No     865  44 0.048405   =44/909
+## Yes     40 115 0.258065   =40/155
+## Totals 905 159 0.078947  =84/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.316689   0.732484 133
+## 2                       max f2  0.224516   0.748503 170
+## 3                 max f0point5  0.488455   0.794393  85
+## 4                 max accuracy  0.424743   0.926692 102
+## 5                max precision  0.967528   1.000000   0
+## 6                   max recall  0.002807   1.000000 394
+## 7              max specificity  0.967528   1.000000   0
+## 8             max absolute_mcc  0.340594   0.687025 123
+## 9   max min_per_class_accuracy  0.178573   0.845161 199
+## 10 max mean_per_class_accuracy  0.224516   0.853721 170
+## 11                     max tns  0.967528 909.000000   0
+## 12                     max fns  0.967528 154.000000   0
+## 13                     max fps  0.000514 909.000000 399
+## 14                     max tps  0.002807 155.000000 394
+## 15                     max tnr  0.967528   1.000000   0
+## 16                     max fnr  0.967528   0.993548   0
+## 17                     max fpr  0.000514   1.000000 399
+## 18                     max tpr  0.002807   1.000000 394
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on validation data. **
+## 
+## MSE:  0.1017976
+## RMSE:  0.3190574
+## LogLoss:  0.3365705
+## Mean Per-Class Error:  0.1953097
+## AUC:  0.867526
+## AUCPR:  0.7250881
+## Gini:  0.7350519
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error     Rate
+## No     136  11 0.074830  =11/147
+## Yes     12  26 0.315789   =12/38
+## Totals 148  37 0.124324  =23/185
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.335112   0.693333  36
+## 2                       max f2  0.226818   0.710784  51
+## 3                 max f0point5  0.544687   0.722222  12
+## 4                 max accuracy  0.422388   0.875676  28
+## 5                max precision  0.914765   1.000000   0
+## 6                   max recall  0.016629   1.000000 144
+## 7              max specificity  0.914765   1.000000   0
+## 8             max absolute_mcc  0.335112   0.615471  36
+## 9   max min_per_class_accuracy  0.226818   0.763158  51
+## 10 max mean_per_class_accuracy  0.323061   0.811045  39
+## 11                     max tns  0.914765 147.000000   0
+## 12                     max fns  0.914765  37.000000   0
+## 13                     max fps  0.001128 147.000000 184
+## 14                     max tps  0.016629  38.000000 144
+## 15                     max tnr  0.914765   1.000000   0
+## 16                     max fnr  0.914765   0.973684   0
+## 17                     max fpr  0.001128   1.000000 184
+## 18                     max tpr  0.016629   1.000000 144
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.08470671
+## RMSE:  0.2910442
+## LogLoss:  0.2999842
+## Mean Per-Class Error:  0.2165478
+## AUC:  0.8443167
+## AUCPR:  0.6164973
+## Gini:  0.6886334
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error       Rate
+## No     832  77 0.084708    =77/909
+## Yes     54 101 0.348387    =54/155
+## Totals 886 178 0.123120  =131/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.275968   0.606607 135
+## 2                       max f2  0.159629   0.649142 207
+## 3                 max f0point5  0.409333   0.670194  86
+## 4                 max accuracy  0.409333   0.900376  86
+## 5                max precision  0.984374   1.000000   0
+## 6                   max recall  0.000440   1.000000 399
+## 7              max specificity  0.984374   1.000000   0
+## 8             max absolute_mcc  0.396174   0.551056  91
+## 9   max min_per_class_accuracy  0.159629   0.780645 207
+## 10 max mean_per_class_accuracy  0.159629   0.785262 207
+## 11                     max tns  0.984374 909.000000   0
+## 12                     max fns  0.984374 154.000000   0
+## 13                     max fps  0.000440 909.000000 399
+## 14                     max tps  0.000440 155.000000 399
+## 15                     max tnr  0.984374   1.000000   0
+## 16                     max fnr  0.984374   0.993548   0
+## 17                     max fpr  0.000440   1.000000 399
+## 18                     max tpr  0.000440   1.000000 399
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`</code></pre>
+<pre class="r"><code># Choose whatever model you want
+stacked_ensemble_h2o &lt;- h2o.loadModel(&quot;model_business case/StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425&quot;)
+stacked_ensemble_h2o</code></pre>
+<pre><code>## Model Details:
+## ==============
+## 
+## H2OBinomialModel: stackedensemble
+## Model ID:  StackedEnsemble_BestOfFamily_2_AutoML_1_20220325_235425 
+## Number of Base Models: 3
+## 
+## Base Models (count by algorithm type):
+## 
+## drf gbm glm 
+##   1   1   1 
+## 
+## Metalearner:
+## 
+## Metalearner algorithm: glm
+## Metalearner cross-validation fold assignment:
+##   Fold assignment scheme: AUTO
+##   Number of folds: 5
+##   Fold column: NULL
+## Metalearner hyperparameters: 
+## 
+## 
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on training data. **
+## 
+## MSE:  0.06490733
+## RMSE:  0.2547692
+## LogLoss:  0.2355832
+## Mean Per-Class Error:  0.1532347
+## AUC:  0.9121828
+## AUCPR:  0.7943757
+## Gini:  0.8243657
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error      Rate
+## No     865  44 0.048405   =44/909
+## Yes     40 115 0.258065   =40/155
+## Totals 905 159 0.078947  =84/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.316689   0.732484 133
+## 2                       max f2  0.224516   0.748503 170
+## 3                 max f0point5  0.488455   0.794393  85
+## 4                 max accuracy  0.424743   0.926692 102
+## 5                max precision  0.967528   1.000000   0
+## 6                   max recall  0.002807   1.000000 394
+## 7              max specificity  0.967528   1.000000   0
+## 8             max absolute_mcc  0.340594   0.687025 123
+## 9   max min_per_class_accuracy  0.178573   0.845161 199
+## 10 max mean_per_class_accuracy  0.224516   0.853721 170
+## 11                     max tns  0.967528 909.000000   0
+## 12                     max fns  0.967528 154.000000   0
+## 13                     max fps  0.000514 909.000000 399
+## 14                     max tps  0.002807 155.000000 394
+## 15                     max tnr  0.967528   1.000000   0
+## 16                     max fnr  0.967528   0.993548   0
+## 17                     max fpr  0.000514   1.000000 399
+## 18                     max tpr  0.002807   1.000000 394
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on validation data. **
+## 
+## MSE:  0.1017976
+## RMSE:  0.3190574
+## LogLoss:  0.3365705
+## Mean Per-Class Error:  0.1953097
+## AUC:  0.867526
+## AUCPR:  0.7250881
+## Gini:  0.7350519
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error     Rate
+## No     136  11 0.074830  =11/147
+## Yes     12  26 0.315789   =12/38
+## Totals 148  37 0.124324  =23/185
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.335112   0.693333  36
+## 2                       max f2  0.226818   0.710784  51
+## 3                 max f0point5  0.544687   0.722222  12
+## 4                 max accuracy  0.422388   0.875676  28
+## 5                max precision  0.914765   1.000000   0
+## 6                   max recall  0.016629   1.000000 144
+## 7              max specificity  0.914765   1.000000   0
+## 8             max absolute_mcc  0.335112   0.615471  36
+## 9   max min_per_class_accuracy  0.226818   0.763158  51
+## 10 max mean_per_class_accuracy  0.323061   0.811045  39
+## 11                     max tns  0.914765 147.000000   0
+## 12                     max fns  0.914765  37.000000   0
+## 13                     max fps  0.001128 147.000000 184
+## 14                     max tps  0.016629  38.000000 144
+## 15                     max tnr  0.914765   1.000000   0
+## 16                     max fnr  0.914765   0.973684   0
+## 17                     max fpr  0.001128   1.000000 184
+## 18                     max tpr  0.016629   1.000000 144
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`
+## H2OBinomialMetrics: stackedensemble
+## ** Reported on cross-validation data. **
+## ** 5-fold cross-validation on training data (Metrics computed for combined holdout predictions) **
+## 
+## MSE:  0.08470671
+## RMSE:  0.2910442
+## LogLoss:  0.2999842
+## Mean Per-Class Error:  0.2165478
+## AUC:  0.8443167
+## AUCPR:  0.6164973
+## Gini:  0.6886334
+## 
+## Confusion Matrix (vertical: actual; across: predicted) for F1-optimal threshold:
+##         No Yes    Error       Rate
+## No     832  77 0.084708    =77/909
+## Yes     54 101 0.348387    =54/155
+## Totals 886 178 0.123120  =131/1064
+## 
+## Maximum Metrics: Maximum metrics at their respective thresholds
+##                         metric threshold      value idx
+## 1                       max f1  0.275968   0.606607 135
+## 2                       max f2  0.159629   0.649142 207
+## 3                 max f0point5  0.409333   0.670194  86
+## 4                 max accuracy  0.409333   0.900376  86
+## 5                max precision  0.984374   1.000000   0
+## 6                   max recall  0.000440   1.000000 399
+## 7              max specificity  0.984374   1.000000   0
+## 8             max absolute_mcc  0.396174   0.551056  91
+## 9   max min_per_class_accuracy  0.159629   0.780645 207
+## 10 max mean_per_class_accuracy  0.159629   0.785262 207
+## 11                     max tns  0.984374 909.000000   0
+## 12                     max fns  0.984374 154.000000   0
+## 13                     max fps  0.000440 909.000000 399
+## 14                     max tps  0.000440 155.000000 399
+## 15                     max tnr  0.984374   1.000000   0
+## 16                     max fnr  0.984374   0.993548   0
+## 17                     max fpr  0.000440   1.000000 399
+## 18                     max tpr  0.000440   1.000000 399
+## 
+## Gains/Lift Table: Extract with `h2o.gainsLift(&lt;model&gt;, &lt;data&gt;)` or `h2o.gainsLift(&lt;model&gt;, valid=&lt;T/F&gt;, xval=&lt;T/F&gt;)`</code></pre>
+<pre class="r"><code>predictions &lt;- h2o.predict(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%
+## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

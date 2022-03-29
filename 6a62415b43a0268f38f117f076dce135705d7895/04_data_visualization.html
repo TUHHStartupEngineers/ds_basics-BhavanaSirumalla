@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>04 Data Visualization</title>
+
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MyLabJournal</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Index</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Journal
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01_tidyverse.html">Tidyverse</a>
+    </li>
+    <li>
+      <a href="02_data_acquisition.html">Data Acquisition</a>
+    </li>
+    <li>
+      <a href="03_data_wrangling.html">Data Wrangling</a>
+    </li>
+    <li>
+      <a href="04_data_visualization.html">Data Visualization</a>
+    </li>
+    <li>
+      <a href="Machine_learning.html">Machine_learning</a>
+    </li>
+    <li>
+      <a href="Supervised_ML.html">Supervised_ML</a>
+    </li>
+    <li>
+      <a href="Automated_ML.html">Automated_ML</a>
+    </li>
+    <li>
+      <a href="Performance_metrics.html">Performance_metrics</a>
+    </li>
+    <li>
+      <a href="Lime.html">Lime</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="05_class_notes.html">Class notes</a>
+</li>
+<li>
+  <a href="06_links.html">Links</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">04 Data Visualization</h1>
+
+</div>
+
+
+<div id="data-visualization" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Data Visualization</h1>
+<div id="challenge-1--time-course-of-the-cumulative-covid-19-cases" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> Challenge 1- Time course of the cumulative Covid-19 cases</h2>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+library(tidyr)
+library(dplyr)
+library(ggrepel)
+#Load the data
+covid_data_tbl &lt;- read_csv(&quot;https://covid.ourworldindata.org/data/owid-covid-data.csv&quot;)%&gt;% 
+  select(location, date, total_cases) %&gt;% 
+  mutate(ym = floor_date(date, &quot;month&quot;)) %&gt;%
+
+  group_by(location,ym) %&gt;% 
+  #order_by(month_year)%&gt;%
+  summarize(total_covid_cases = sum(total_cases)) %&gt;% 
+  ungroup()
+#covid_data_tbl %&gt;%  glimpse()
+
+
+
+covid_locations &lt;- covid_data_tbl %&gt;%
+  filter(location == &quot;Germany&quot; | location == &quot;United Kingdom&quot; | 
+           location == &quot;France&quot; | location == &quot;Spain&quot; | location == &quot;United States&quot;) %&gt;% 
+  mutate(cases_dec = scales::dollar(total_covid_cases, big.mark = &quot;.&quot;, 
+                                    decimal.mark = &quot;,&quot;, 
+                                    prefix = &quot;&quot;, 
+                                    suffix = &quot;&quot;))
+#filter_countries %&gt;% glimpse()
+
+covid_locations %&gt;%
+  
+  ggplot(aes(ym, total_covid_cases, color = location)) +
+
+  geom_line(size = 1)+
+  
+  scale_x_date(date_labels = &quot;%B %y&quot;, breaks = covid_locations$ym)+
+  scale_y_continuous(labels = scales::dollar_format(scale = 1/1e6, 
+                                                    prefix = &quot;&quot;, 
+                                                    suffix = &quot; M&quot;)) +
+
+  labs(
+    title = &quot;COVID-19 confirmed cases worldwide&quot;,
+    subtitle = &quot;As of 16/04/2021&quot;,
+    x = &quot;&quot;,
+    y = &quot;Cumulative Cases&quot;,
+    fill = &quot;location&quot;
+  ) +
+  theme_classic()+
+  theme(legend.position = &quot;bottom&quot;,axis.text.x = element_text(angle = 45,hjust=1))</code></pre>
+<p><img src="04_data_visualization_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+</div>
+<div id="challenge-2--mortality-rate-with-geom_map" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> Challenge 2- Mortality rate with geom_map()</h2>
+<pre class="r"><code>library(maps)
+world &lt;- map_data(&quot;world&quot;) 
+
+covid_data_tbl &lt;- read_csv(&quot;https://covid.ourworldindata.org/data/owid-covid-data.csv&quot;) %&gt;% 
+  select(location, date,total_deaths, population) %&gt;% 
+  mutate(mortality_rate = total_deaths/population)%&gt;%  
+  filter(date == as.Date(&#39;2021-04-16&#39;)) %&gt;%
+  
+  #locations
+  mutate(location = case_when(
+    location == &quot;United Kingdom&quot; ~ &quot;UK&quot;,
+    location == &quot;United States&quot; ~ &quot;USA&quot;,
+    location == &quot;Democratic Republic of Congo&quot; ~ &quot;Democratic Republic of the Congo&quot;,
+    TRUE ~ location
+  )) %&gt;%distinct() %&gt;%
+  
+  #merging tables
+  left_join(y = world, by = c(&quot;location&quot; = &quot;region&quot;))
+
+
+covid_data_tbl %&gt;% 
+  ggplot() +
+  geom_map(aes(long, lat, map_id = location, fill = mortality_rate),map = world) +
+  scale_fill_gradient2(
+    low = &quot;tomato1&quot;,
+    mid = &quot;tomato3&quot;,
+    high = &quot;brown&quot;,labels = scales::percent
+  )+
+  labs(
+    title = &quot;Confirmed COVID-19 deaths relative to the size of population&quot;,
+    subtitle = &quot;Around 3 Million confirmed COVID-19 deaths worldwide&quot;, 
+    fill = &quot;mortality_rate&quot;,
+    x = &quot;&quot;,
+    y = &quot;&quot;,
+    caption = &quot;Date: 04/16/2021&quot;
+  ) +
+  theme_light()</code></pre>
+<p><img src="04_data_visualization_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>
+<div id="business-case--lollipop-chart" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> Business case- Lollipop chart</h2>
+<pre class="r"><code>#1. Load libraries and data
+#Case 1
+# 1.0 Lollipop Chart: Top N Customers ----
+library(tidyverse)
+library(lubridate)
+
+bike_orderlines_tbl &lt;- read_rds(&quot;00_data/Business Decisions with Machine Learning/bike_orderlines.rds&quot;)
+
+#2. Data manipluation
+
+n &lt;- 10
+# Data Manipulation
+top_customers_tbl &lt;- bike_orderlines_tbl %&gt;%
+  
+  # Select relevant columns
+  select(bikeshop, total_price) %&gt;%
+  
+  # Collapse the least frequent values into &quot;other&quot;
+  mutate(bikeshop = as_factor(bikeshop) %&gt;% fct_lump(n = n, w = total_price)) %&gt;%
+  
+  # Group and summarize
+  group_by(bikeshop) %&gt;%
+  summarize(revenue = sum(total_price)) %&gt;%
+  ungroup() %&gt;%
+  
+  # Reorder the column customer_city by revenue
+  mutate(bikeshop = bikeshop %&gt;% fct_reorder(revenue)) %&gt;%
+  # Place &quot;Other&quot; at the beginning
+  mutate(bikeshop = bikeshop %&gt;% fct_relevel(&quot;Other&quot;, after = 0)) %&gt;%
+  # Sort by this column
+  arrange(desc(bikeshop)) %&gt;%
+  
+  # Add Revenue Text
+  mutate(revenue_text = scales::dollar(revenue, 
+                                       scale  = 1e-6, 
+                                       prefix = &quot;&quot;, 
+                                       suffix = &quot;M $&quot;)) %&gt;%
+  
+  # Add Cumulative Percent
+  mutate(cum_pct = cumsum(revenue) / sum(revenue)) %&gt;%
+  mutate(cum_pct_text = scales::percent(cum_pct)) %&gt;%
+  
+  # Add Rank
+  mutate(rank = row_number()) %&gt;%
+  mutate(rank = case_when(
+    rank == max(rank) ~ NA_integer_,
+    TRUE ~ rank
+  )) %&gt;%
+  
+  # Add Label text
+  mutate(label_text = str_glue(&quot;Rank: {rank}\nRev: {revenue_text}\nCumPct: {cum_pct_text}&quot;))
+
+#3 Data Visualization
+top_customers_tbl %&gt;%
+  
+  # Canvas
+  ggplot(aes(revenue, bikeshop)) +
+  
+  # Geometries
+  geom_segment(aes(xend = 0, yend = bikeshop), 
+               color = RColorBrewer::brewer.pal(n = 11, name = &quot;RdBu&quot;)[11],
+               size  = 1) +
+  
+  geom_point(aes(size = revenue),
+             color = RColorBrewer::brewer.pal(n = 11, name = &quot;RdBu&quot;)[11]) +
+  
+  geom_label(aes(label = label_text), 
+             hjust = &quot;inward&quot;,
+             size  = 3,
+             color = RColorBrewer::brewer.pal(n = 11, name = &quot;RdBu&quot;)[11]) +
+  
+  # Formatting
+  scale_x_continuous(labels = scales::dollar_format(scale = 1e-6, 
+                                                    prefix = &quot;&quot;,
+                                                    suffix = &quot;M $&quot;)) +
+  labs(
+    title = str_glue(&quot;Top {n} Customers&quot;),
+    subtitle = str_glue(
+      &quot;Start: {year(min(bike_orderlines_tbl$order_date))}
+               End:  {year(max(bike_orderlines_tbl$order_date))}&quot;),
+    x = &quot;Revenue (M $)&quot;,
+    y = &quot;Customer&quot;,
+    caption = str_glue(&quot;Top 6 customers contribute
+                           52% of purchasing power.&quot;)
+  ) +
+  
+  theme_minimal() +
+  theme(
+    legend.position = &quot;none&quot;,
+    plot.title = element_text(face = &quot;bold&quot;),
+    plot.caption = element_text(face = &quot;bold.italic&quot;)
+  )</code></pre>
+<p><img src="04_data_visualization_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="business-case--heat-map" class="section level2" number="1.4">
+<h2><span class="header-section-number">1.4</span> Business case- Heat map</h2>
+<pre class="r"><code>#Case 2
+
+#1. Data manipluation
+
+# Select columns and filter categories
+pct_sales_by_customer_tbl &lt;- bike_orderlines_tbl %&gt;%
+  
+  select(bikeshop, category_1, category_2, quantity) %&gt;%
+  filter(category_1 %in% c(&quot;Mountain&quot;,&quot;Road&quot;)) %&gt;% 
+  
+  # Group by category and summarize
+  group_by(bikeshop, category_1, category_2) %&gt;%
+  summarise(total_qty = sum(quantity)) %&gt;%
+  ungroup() %&gt;%
+  
+  # Add missing groups (not necessarily mandatory, but we&#39;d get holes in the plot)
+  # complete() creates NAs. We need to set those to 0.
+  complete(bikeshop, nesting(category_1, category_2)) %&gt;% 
+  mutate(across(total_qty, ~replace_na(., 0))) %&gt;%  
+  
+  # Group by bikeshop and calculate revenue ratio
+  group_by(bikeshop) %&gt;%
+  mutate(pct = total_qty / sum(total_qty)) %&gt;%
+  ungroup() %&gt;%
+  
+  # Reverse order of bikeshops
+  mutate(bikeshop = as.factor(bikeshop) %&gt;% fct_rev()) %&gt;%
+  # Just to verify
+  mutate(bikeshop_num = as.numeric(bikeshop))
+
+#3 Data Visualization
+pct_sales_by_customer_tbl %&gt;%
+  
+  ggplot(aes(category_2, bikeshop)) +
+  
+  # Geometries
+  geom_tile(aes(fill = pct)) +
+  geom_text(aes(label = scales::percent(pct, accuracy = 1L)), 
+            size = 3) +
+  facet_wrap(~ category_1, scales = &quot;free_x&quot;) +
+  
+  # Formatting
+  scale_fill_gradient(low = &quot;white&quot;, high = &quot;#2C3E50&quot;) +
+  labs(
+    title = &quot;Heatmap of Purchasing Habits&quot;,
+    x = &quot;Bike Type (Category 2)&quot;,
+    y = &quot;Customer&quot;,
+    caption = str_glue(
+      &quot;Customers that prefer Road: 
+        To be discussed ...
+        
+        Customers that prefer Mountain: 
+        To be discussed ...&quot;)
+  ) +
+  
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = &quot;none&quot;,
+    plot.title = element_text(face = &quot;bold&quot;),
+    plot.caption = element_text(face = &quot;bold.italic&quot;)
+  )</code></pre>
+<p><img src="04_data_visualization_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

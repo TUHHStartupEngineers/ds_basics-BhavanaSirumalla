@@ -8,8 +8,13 @@ output: html_document
 ![](images/logo.png)
 
 # **My Lab Journal**
+#  
+***
+*My name is __Bhavana Sirumalla__ pursuing Masters at __NIT__. I have documented the challenges and business
+cases from my class work as part of the module __Data Science and Machine Learning for managers__ WS 2021/22.*
 
-This is a template example for lab journaling. Students in the data science courses at the Institute of Entrepreneurship will use this template to learn R for business analytics. Students can replace this text as they wish.
+***
+#  
 
 ## How to use
 

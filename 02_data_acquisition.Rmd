@@ -1,6 +1,6 @@
 ---
 title: "02 Data Acqusition"
-date: "2021-04"
+#date: "2022-03"
 output:
   html_document:
     toc: true
@@ -9,46 +9,270 @@ output:
     collapsed: false
     number_sections: true
     toc_depth: 3
-    code_folding: hide
+    #code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 ```
 
-**IMPORTANT:** You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing.
 
-This is an `.Rmd` file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a \# in front of your text, it will create a top level-header.
+# Data Acquisition
 
-# My first post
 
-Last compiled: `r Sys.Date()`
-
-Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left. 
-
-## Second level header
-
-You can add more headers by adding more hashtags. These won't be put into the table of contents
-
-### third level header
-
-Here's an even lower level header
-
-# My second post (note the order)
-
-Last compiled: `r Sys.Date()`
-
-I'm writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom
-
-# Adding R stuff
-
-So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place. 
-
-So, let's say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:
+## Challenge 1- Get data with API
 
 ```{r}
-samples <- rnorm(100, mean=0, sd=1)
-hist(samples)
-```
+#Load libraries
+library(httr)
+library(tidyverse)
+#getting data from spotify 
+  id = ########################
+  code = ###########################
+response = POST('https://accounts.spotify.com/api/token',
+  accept_json(),
+  authenticate(id, code),
+  body = list(grant_type = 'client_credentials'),
+  encode = 'form',
+  verbose()
+)
+#token
+token = content(response)$access_token
+HeaderValue = paste0('Bearer ', token)
+albumID = "1NAmidJlEaVgA3MpcPFYGq"
+track_URI = paste0('https://api.spotify.com/v1/albums/', albumID,'/tracks')
+track_response = GET(url = track_URI, add_headers(Authorization = HeaderValue))
+tracks = content(track_response)
+#getting the info
+ntracks = length(tracks$items)
+artist_info<-data.frame(
+  name=character(ntracks),
+  artist=character(ntracks),
+  stringsAsFactors=FALSE
+)
 
-When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You'll learn that all of these things and more can be customized in each R code block.
+#looping to get data
+for(i in 1:ntracks){
+  artist_info[i,]$name <- tracks$items[[i]]$name
+  artist_info[i,]$artist <- tracks$items[[i]]$artists[[1]]$name 
+  
+}
+artist_info_tbl<-artist_info
+artist_info_tbl %>% glimpse()
+
+```
+## Challenge 2- Web Scraping
+
+```{r}
+library(rvest)
+library(stringi)
+library(xopen)
+library(jsonlite)
+library(tidyverse)
+library(glue)
+
+url <- "https://www.radon-bikes.de"
+#xopen(url)
+html_home <- read_html(url)
+
+#Get url for each of the product categories
+bike_category_url_tbl <- html_home %>% html_nodes(".megamenu__item") %>% html_elements("a") %>% 
+  html_attr('href') %>% enframe(name = 'position',value = 'title') %>% mutate(
+    category_url=glue("https://www.radon-bikes.de{title}")
+  ) %>% filter(position<9)
+
+#Get the Model Names
+get_bike_data <- function(link){
+  model_infor <- read_html(link) %>% html_nodes(".o-slick-slider__slide-content") %>%
+  html_element("h2") %>% html_text() %>% enframe(name = "position",value = 'model')
+  
+  #Get the sizes
+  bike_sizes <- read_html(link) %>% html_nodes(".o-slick-slider__slide-content")%>%  
+  html_node('.m-bikegrid__size') %>% html_text() %>% str_extract("[0-9].+")%>% 
+ enframe(name = "position",value = "size")
+  
+#Get the prices
+  bike_prices <- read_html(link) %>% html_nodes(".m-serienpanel__price--active") %>% html_text() %>% 
+    str_remove("^ .$") %>%  stri_remove_empty() %>%  enframe(name='position',value = 'price')
+  
+#combine three using position
+   model_infor %>% left_join(bike_sizes) %>% left_join(bike_prices) %>%
+    filter(position!=23)
+}
+
+# Get the URl for 1st category
+category_1 <-  bike_category_url_tbl$category_url[2] 
+bike_model<- get_bike_data(link = category_1)
+
+bike_category_url_data <- bike_category_url_tbl %>% pull(category_url) 
+
+bike_data_list <- map(bike_category_url_data,get_bike_data) 
+
+bike_data_tbl <- bind_rows(bike_data_list) 
+
+#removing "Euro" symbol from price
+bike_data_tbl$price<-gsub("€","",as.character(bike_data_tbl$price))%>% na.exclude()
+bike_data_tbl  %>% head(n=10)# display 10 rows
+
+```
+## Business case
+```{r}
+# WEBSCRAPING ----
+
+# 1.0 LIBRARIES ----
+
+library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
+library(rvest)     # HTML Hacking & Web Scraping
+library(xopen)     # Quickly opening URLs
+library(jsonlite)  # converts JSON files to R objects
+library(glue)      # concatenate strings
+library(stringi)   # character string/text processing
+
+# 1.1 COLLECT PRODUCT FAMILIES ----
+
+url_home          <- "https://www.canyon.com/en-de"
+html_home         <- read_html(url_home)
+
+# 01. Get bike categories ----
+bike_category_tbl <- html_home %>%
+  
+  # Get the nodes for the families ...
+  html_nodes(css = ".is-bikeCategory .js-menuItemThirdLevel") |> 
+  html_attr("href") |> 
+  as_tibble() |> 
+  rename("url" = value) |> 
+  mutate(url = str_c("https://www.canyon.com", url))
+
+bike_category_tbl
+
+# 02a. Get bike urls (single category)
+bike_category_url <- bike_category_tbl$url[1]
+
+html_bike_category  <- read_html(bike_category_url)
+bike_url_tbl        <- html_bike_category %>%
+  
+  # Get the 'a' nodes, which are hierarchally underneath 
+  # the class productTile__contentWrapper
+  html_nodes(css = ".productTile__contentWrapper > a") %>%
+  html_attr("href") %>%
+  
+  # Remove the query parameters of the URL (everything after the '?')
+  str_remove(pattern = "\\?.*") %>%
+  
+  # Convert vector to tibble
+  enframe(name = "position", value = "url")
+
+html_bike_category
+
+# 02b. Get bike description (single category)
+bike_desc_tbl <- html_bike_category %>%
+  
+  # Get the nodes in the meta tag where the attribute itemprop equals description
+  html_nodes('.productTile__productSummaryLeft > meta[itemprop="description"]') %>%
+  
+  # Extract the content of the attribute content
+  html_attr("content") %>%
+  
+  # Convert vector to tibble
+  enframe(name = "position", value = "description")
+
+
+# 02c. Get JSON data
+bike_json_tbl  <- html_bike_category %>%
+  
+  html_nodes(css = '.productGrid__listItem.xlt-producttile > div') %>%
+  html_attr("data-gtm-impression") %>%
+  
+  # Convert the JSON format to dataframe
+  # map runs that function on each element of the list
+  map(fromJSON) %>% # need JSON ### need lists
+  
+  # Extract relevant information of the nested list
+  map(purrr::pluck, "ecommerce", "impressions") %>% # Need purrr and expl above
+  
+  # Set "not defined" and emtpy fields to NA (will be easier to work with)
+  map(na_if, "not defined") %>%
+  map(na_if, "") %>%
+  
+  # The class of dimension56 and price varies between numeric and char.
+  # This converts this column in each list to numeric
+  # across allows to perform the same operation on multiple columns
+  map(~mutate(., across(c("dimension56","price"), as.numeric))) %>%
+  
+  # Stack all lists together
+  bind_rows() %>%
+  # Convert to tibble so that we have the same data format
+  as_tibble() %>%
+  
+  # Add consecutive numbers so that we can bind all data together
+  # You could have also just use bind_cols()
+  rowid_to_column(var='position') %>%
+  left_join(bike_desc_tbl) %>%
+  left_join(bike_url_tbl)
+
+# Function ----------------------------------------------------------------
+
+get_bike_data <- function(url) {
+  
+  html_bike_category <- read_html(url)
+  
+  # Get the URLs
+  bike_url_tbl  <- html_bike_category %>%
+    html_nodes(css = ".productTile__contentWrapper > a") %>%
+    html_attr("href") %>%
+    str_remove(pattern = "\\?.*") %>%
+    enframe(name = "position", value = "url")
+  # Get the descriptions
+  bike_desc_tbl <- html_bike_category %>%
+    html_nodes(css = '.productTile__productSummaryLeft > 
+                      meta[itemprop="description"]') %>%
+    html_attr("content") %>%
+    enframe(name = "position", value = "description")
+  
+  # Get JSON data
+  bike_json_tbl <- html_bike_category %>%
+    html_nodes(css = '.productGrid__listItem.xlt-producttile > div') %>%
+    html_attr("data-gtm-impression") %>%
+    map(fromJSON) %>% # need JSON ### need lists
+    map(purrr::pluck, 2, "impressions") %>% 
+    map(na_if, "not defined") %>%
+    map(na_if, "") %>%
+    map(~mutate(., across(c("dimension56","metric4","price"), as.numeric))) %>%
+    bind_rows() %>%
+    as_tibble() %>%
+    rowid_to_column(var='position') %>%
+    left_join(bike_desc_tbl) %>%
+    left_join(bike_url_tbl)
+  
+}  
+
+bike_json_tbl
+# Run the function with the first url to check if it is working
+# bike_category_url <- bike_category_tbl$url[1]
+# bike_data_tbl     <- get_bike_data(url = bike_category_url)
+
+#bike_data_tbl
+
+bike_category_tbl$url[2]
+test <- get_bike_data(bike_category_tbl$url[2])
+
+
+bike_category_url_vec <- bike_category_tbl %>% 
+  pull(url)
+
+# Run the function with every url as an argument
+bike_data_lst <- map(bike_category_url_vec, get_bike_data)
+
+# Merge the list into a tibble
+bike_data_tbl <- bind_rows(bike_data_lst)
+#saveRDS(bike_data_tbl, "bike_data_tbl.rds")
+
+# Check for duplicates
+bike_data_tbl %>%
+  group_by(id) %>%
+  filter(n()>1) %>%
+  arrange(id) %>% 
+  View()
+
+
+```

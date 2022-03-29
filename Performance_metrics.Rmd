@@ -1,0 +1,741 @@
+---
+title: "Performance_metrics"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    collapsed: false
+    number_sections: true
+    toc_depth: 3
+    #code_folding: hide
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE, cache=TRUE)
+```
+
+# Performance measures
+
+
+## Challenge
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(rsample)
+library(recipes)
+library(h2o)
+
+#1.Load the training & test dataset
+
+product_backorders_tbl <- read_csv("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/product_backorders.csv")
+# Data split
+set.seed(seed = 1113)
+split_obj <- rsample::initial_split(product_backorders_tbl, prop = 0.85)
+train_readable_tbl <- training(split_obj)
+test_readable_tbl  <- testing(split_obj)
+
+#2. Specify the response and predictor variables
+recipe_obj <- recipe(went_on_backorder ~., data = product_backorders_tbl) %>% 
+  step_zv(all_predictors()) %>% 
+  prep()
+
+train_tbl <- bake(recipe_obj, new_data = train_readable_tbl)
+test_tbl  <- bake(recipe_obj, new_data = test_readable_tbl)
+
+#3. Run AutoML specifying the stopping criterion
+
+# Modeling
+h2o.init()
+
+# Split data into a training and a validation data frame
+# Setting the seed is just for reproducability
+split_h2o <- h2o.splitFrame(as.h2o(train_tbl), ratios = c(0.85), seed = 1234)
+train_h2o <- split_h2o[[1]]
+valid_h2o <- split_h2o[[2]]
+test_h2o  <- as.h2o(test_tbl)
+
+# Set the target and predictors
+y <- "went_on_backorder" 
+x <- setdiff(names(train_h2o), y) 
+
+automl_models_h2o <- h2o.automl(
+  x = x,
+  y = y,
+  training_frame    = train_h2o,
+  validation_frame  = valid_h2o,
+  leaderboard_frame = test_h2o,
+  max_runtime_secs  = 30,
+  nfolds            = 5 
+)
+
+#4. View the leaderboard 
+
+typeof(automl_models_h2o)
+
+slotNames(automl_models_h2o)
+
+automl_models_h2o@leaderboard
+
+automl_models_h2o@leader
+
+#5. Predicting using Leader Model
+
+# Depending on the algorithm, the output will be different
+h2o.getModel("GBM_1_AutoML_2_20220323_00551")
+
+# h2o.getModel("StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551") %>% 
+#   h2o.saveModel(path = "C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model")
+# h2o.getModel("GBM_3_AutoML_2_20220323_00551") %>% 
+#   h2o.saveModel(path = "C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model")
+
+# Extracts and H2O model name by a position so can more easily use h2o.getModel()
+extract_h2o_model_name_by_position <- function(h2o_leaderboard, n = 1, verbose = T) {
+  
+  model_name <- h2o_leaderboard %>%
+    as.tibble() %>%
+    slice(n) %>%
+    pull(model_id)
+  
+  if (verbose) message(model_name)
+  
+  return(model_name)
+  
+}
+
+automl_models_h2o@leaderboard %>% 
+  extract_h2o_model_name_by_position(6) %>% 
+  h2o.getModel()
+
+#6. Save the leader model
+
+# h2o.getModel("GBM_1_AutoML_2_20220323_00551") %>% 
+#   h2o.saveModel(path = "C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model")
+
+h2o.loadModel("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551")
+
+# Choose whatever model you want
+stacked_ensemble_h2o <- h2o.loadModel("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551")
+stacked_ensemble_h2o
+
+predictions <- h2o.predict(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))
+
+typeof(predictions)
+
+
+predictions_tbl <- predictions %>% as_tibble()%>% bind_cols(test_tbl)
+
+##Challenge - Performance measures
+
+# 1. Leaderboard visualization
+
+automl_models_h2o@leaderboard %>% 
+  as_tibble() %>% 
+  select(-c(mean_per_class_error, rmse, mse))
+
+
+# Visualize the H2O leaderboard to help with model selection
+data_transformed_tbl <- automl_models_h2o@leaderboard %>%
+  as_tibble() %>%
+  select(-c(aucpr, mean_per_class_error, rmse, mse)) %>% 
+  mutate(model_type = str_extract(model_id, "[^_]+")) %>%
+  slice(1:15) %>% 
+  rownames_to_column(var = "rowname") %>%
+  # Visually this step will not change anything
+  # It reorders the factors under the hood
+  mutate(
+    model_id   = as_factor(model_id) %>% reorder(auc),
+    model_type = as.factor(model_type)
+  ) %>% 
+  pivot_longer(cols = -c(model_id, model_type, rowname), 
+               names_to = "key", 
+               values_to = "value", 
+               names_transform = list(key = forcats::fct_inorder)
+  ) %>% 
+  mutate(model_id = paste0(rowname, ". ", model_id) %>% as_factor() %>% fct_rev())
+
+data_transformed_tbl %>%
+  ggplot(aes(value, model_id, color = model_type)) +
+  geom_point(size = 3) +
+  geom_label(aes(label = round(value, 2), hjust = "inward")) +
+  
+  # Facet to break out logloss and auc
+  facet_wrap(~ key, scales = "free_x") +
+  labs(title = "Leaderboard Metrics",
+       subtitle = paste0("Ordered by: ", "auc"),
+       y = "Model Postion, Model ID", x = "") + 
+  theme(legend.position = "bottom")
+
+
+# plot_h2o_leaderboard <- function(h2o_leaderboard, order_by = c("auc", "logloss"), 
+#                                  n_max = 20, size = 4, include_lbl = TRUE) { ... }
+
+# 2. Tune a model with grid search
+
+predict_backorders_h2o <- h2o.loadModel("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551")
+
+predict_backorders_h2o 
+
+#h2o.performance(predict_backorders_h2o, newdata = as.h2o(test_tbl)) 
+
+
+predict_backorders_grid_01 <- h2o.grid(
+  algorithm = "gbm",
+  
+  # I just use the same as the object
+  grid_id = "predict_backorders_grid_01",
+
+  # predictor and response variables
+  x = x,
+  y = y,
+  
+  # training and validation frame and crossfold validation
+  training_frame   = train_h2o,
+  validation_frame = valid_h2o,
+  nfolds = 5,
+  
+  hyper_params = list(ntrees= c(50,20,15) 
+    
+  )
+)
+
+predict_backorders_grid_01 
+  
+h2o.getGrid(grid_id = "predict_backorders_grid_01", sort_by = "auc", decreasing = TRUE)
+
+predict_backorders_grid_01_model_1 <- h2o.getModel("GBM_1_AutoML_2_20220323_00551")
+predict_backorders_grid_01_model_1 %>% h2o.auc(train = T, valid = T, xval = T)
+
+# predict_backorders_grid_01_model_1 %>%
+#   h2o.performance(newdata = as.h2o(test_tbl))
+
+stacked_ensemble_h2o <- h2o.loadModel("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/StackedEnsemble_BestOfFamily_2_AutoML_2_20220323_00551")
+predict_backorders_h2o     <- h2o.loadModel("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551")
+gbm_h2o              <- h2o.loadModel("C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_3_AutoML_2_20220323_00551")
+
+performance_h2o <- h2o.performance(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))
+
+typeof(performance_h2o)
+performance_h2o %>% slotNames()
+
+# We are focusing on the slot metrics. This slot contains all possible metrics
+performance_h2o@metrics
+
+
+# 3. Visualize the trade of between the precision and the recall and the optimal threshold
+
+# Precision vs Recall Plot
+
+# This is on the test set
+performance_tbl <- performance_h2o %>%
+  h2o.metric() %>%
+  as.tibble() 
+
+
+
+
+theme_new <- theme(
+  legend.position  = "bottom",
+  legend.key       = element_blank(),
+  panel.background = element_rect(fill   = "transparent"),
+  panel.border     = element_rect(color = "black", fill = NA, size = 0.5),
+  panel.grid.major = element_line(color = "grey", size = 0.333)
+) 
+
+performance_tbl %>%
+  filter(f1 == max(f1))
+
+performance_tbl %>%
+  ggplot(aes(x = threshold)) +
+  geom_line(aes(y = precision), color = "blue", size = 1) +
+  geom_line(aes(y = recall), color = "red", size = 1) +
+  
+  # Insert line where precision and recall are harmonically optimized
+  geom_vline(xintercept = h2o.find_threshold_by_max_metric(performance_h2o, "f1")) +
+  labs(title = "Precision vs Recall", y = "value") +
+  theme_new
+
+# 4. ROC Plot
+
+path <- "C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/GBM_1_AutoML_2_20220323_00551"
+
+load_model_performance_metrics <- function(path, test_tbl) {
+  
+  model_h2o <- h2o.loadModel(path)
+  perf_h2o  <- h2o.performance(model_h2o, newdata = as.h2o(test_tbl)) 
+  
+  perf_h2o %>%
+    h2o.metric() %>%
+    as_tibble() %>%
+    mutate(auc = h2o.auc(perf_h2o)) %>%
+    select(tpr, fpr, auc)
+  
+}
+
+model_metrics_tbl <- fs::dir_info(path = "C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/") %>%
+  select(path) %>%
+  mutate(metrics = map(path, load_model_performance_metrics, test_tbl)) %>%
+  unnest(cols = metrics)
+
+model_metrics_tbl %>%
+  mutate(
+    # Extract the model names
+    path = str_split(path, pattern = "/", simplify = T)[,7] %>% as_factor(),
+    auc  = auc %>% round(3) %>% as.character() %>% as_factor()
+  ) %>%
+  ggplot(aes(fpr, tpr, color = path, linetype = auc)) +
+  geom_line(size = 1) +
+  
+  # just for demonstration purposes
+  geom_abline(color = "red", linetype = "dotted") +
+  
+  theme_new +
+  theme(
+    legend.direction = "vertical",
+  ) +
+  labs(
+    title = "ROC Plot",
+    subtitle = "Performance of 3 Top Performing Models"
+  )
+
+# 5. Precision vs Recall Plot
+
+load_model_performance_metrics <- function(path, test_tbl) {
+  
+  model_h2o <- h2o.loadModel(path)
+  perf_h2o  <- h2o.performance(model_h2o, newdata = as.h2o(test_tbl)) 
+  
+  perf_h2o %>%
+    h2o.metric() %>%
+    as_tibble() %>%
+    mutate(auc = h2o.auc(perf_h2o)) %>%
+    select(tpr, fpr, auc, precision, recall)
+  
+}
+
+model_metrics_tbl <- fs::dir_info(path = "C:/Bhavana/LECTURES/Sem 3/ds_basics-BhavanaSirumalla/model/") %>%
+  select(path) %>%
+  mutate(metrics = map(path, load_model_performance_metrics, test_tbl)) %>%
+  unnest(cols = metrics)
+
+model_metrics_tbl %>%
+  mutate(
+    path = str_split(path, pattern = "/", simplify = T)[,7] %>% as_factor(),
+    auc  = auc %>% round(3) %>% as.character() %>% as_factor()
+  ) %>%
+  ggplot(aes(recall, precision, color = path, linetype = auc)) +
+  geom_line(size = 1) +
+  theme_new + 
+  theme(
+    legend.direction = "vertical",
+  ) +
+  labs(
+    title = "Precision vs Recall Plot",
+    subtitle = "Performance of 3 Top Performing Models"
+  )
+
+# 6. Gain Plot
+ranked_predictions_backorders_tbl <- predictions_tbl %>%
+  bind_cols(test_tbl) %>%
+  select(predict:Yes, went_on_backorder = went_on_backorder...49) %>%
+  arrange(desc(Yes))
+
+ranked_predictions_backorders_tbl %>%
+  mutate(ntile = ntile(Yes, n = 10)) %>%
+  group_by(ntile) %>%
+  summarise(
+    cases = n(),
+    responses = sum(went_on_backorder == "Yes")
+  ) %>%
+  arrange(desc(ntile))
+
+calculated_gain_lift_tbl <- ranked_predictions_backorders_tbl %>%
+  mutate(ntile = ntile(Yes, n = 10)) %>%
+  group_by(ntile) %>%
+  summarise(
+    cases = n(),
+    responses = sum(went_on_backorder == "Yes")
+  ) %>%
+  arrange(desc(ntile)) %>%
+
+  mutate(group = row_number()) %>%
+  select(group, cases, responses) %>%
+  
+  mutate(
+    cumulative_responses = cumsum(responses),
+    pct_responses        = responses / sum(responses),
+    gain                 = cumsum(pct_responses),
+    cumulative_pct_cases = cumsum(cases) / sum(cases),
+    lift                 = gain / cumulative_pct_cases,
+    gain_baseline        = cumulative_pct_cases,
+    lift_baseline        = gain_baseline / cumulative_pct_cases
+  )
+#calculated_gain_lift_tbl 
+
+gain_lift_tbl <- performance_h2o %>%
+  h2o.gainsLift() %>%
+  as.tibble()
+
+##Gain Chart
+
+gain_transformed_tbl <- gain_lift_tbl %>% 
+  select(group, cumulative_data_fraction, cumulative_capture_rate, cumulative_lift) %>%
+  select(-contains("lift")) %>%
+  mutate(baseline = cumulative_data_fraction) %>%
+  rename(gain     = cumulative_capture_rate) %>%
+  # prepare the data for the plotting (for the color and group aesthetics)
+  pivot_longer(cols = c(gain, baseline), values_to = "value", names_to = "key")
+
+gain_transformed_tbl %>%
+  ggplot(aes(x = cumulative_data_fraction, y = value, color = key)) +
+  geom_line(size = 1.5) +
+  labs(
+    title = "Gain Chart",
+    x = "Cumulative Data Fraction",
+    y = "Gain"
+  ) +
+  theme_new
+
+# 7. Lift Plot
+
+lift_transformed_tbl <- gain_lift_tbl %>% 
+  select(group, cumulative_data_fraction, cumulative_capture_rate, cumulative_lift) %>%
+  select(-contains("capture")) %>%
+  mutate(baseline = 1) %>%
+  rename(lift = cumulative_lift) %>%
+  pivot_longer(cols = c(lift, baseline), values_to = "value", names_to = "key")
+
+lift_transformed_tbl %>%
+  ggplot(aes(x = cumulative_data_fraction, y = value, color = key)) +
+  geom_line(size = 1.5) +
+  labs(
+    title = "Lift Chart",
+    x = "Cumulative Data Fraction",
+    y = "Lift"
+  ) +
+  theme_new
+
+#8. Dashboard with cowplot
+
+library(cowplot)
+library(glue)
+library(ggplot2)
+# set values to test the function while building it
+h2o_leaderboard <- automl_models_h2o@leaderboard
+newdata <- test_tbl
+order_by <- "auc"
+max_models <- 4
+size <- 1
+
+plot_h2o_performance <- function(h2o_leaderboard, newdata, order_by = c("auc", "logloss"),
+                                 max_models = 3, size = 1.5) {
+  
+  # Inputs
+  
+  leaderboard_tbl <- h2o_leaderboard %>%
+    as_tibble() %>%
+    slice(1:max_models)
+  
+  newdata_tbl <- newdata %>%
+    as_tibble()
+  
+  # Selecting the first, if nothing is provided
+  order_by      <- tolower(order_by[[1]]) 
+  
+  # Convert string stored in a variable to column name (symbol)
+  order_by_expr <- rlang::sym(order_by)
+  
+  # Turn of the progress bars ( opposite h2o.show_progress())
+  h2o.no_progress()
+  
+  # 1. Model metrics
+  
+  get_model_performance_metrics <- function(model_id, test_tbl) {
+    
+    model_h2o <- h2o.getModel(model_id)
+    perf_h2o  <- h2o.performance(model_h2o, newdata = as.h2o(test_tbl))
+    
+    perf_h2o %>%
+      h2o.metric() %>%
+      as.tibble() %>%
+      select(threshold, tpr, fpr, precision, recall)
+    
+  }
+  
+  model_metrics_tbl <- leaderboard_tbl %>%
+    mutate(metrics = map(model_id, get_model_performance_metrics, newdata_tbl)) %>%
+    unnest(cols = metrics) %>%
+    mutate(
+      model_id = as_factor(model_id) %>% 
+        # programmatically reorder factors depending on order_by
+        fct_reorder(!! order_by_expr, 
+                    .desc = ifelse(order_by == "auc", TRUE, FALSE)),
+      auc      = auc %>% 
+        round(3) %>% 
+        as.character() %>% 
+        as_factor() %>% 
+        fct_reorder(as.numeric(model_id)),
+      logloss  = logloss %>% 
+        round(4) %>% 
+        as.character() %>% 
+        as_factor() %>% 
+        fct_reorder(as.numeric(model_id))
+    )
+  
+  
+  # 1A. ROC Plot
+  
+  p1 <- model_metrics_tbl %>%
+    ggplot(aes(fpr, tpr, color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size) +
+    theme_new +
+    labs(title = "ROC", x = "FPR", y = "TPR") +
+    theme(legend.direction = "vertical") 
+  
+  
+  # 1B. Precision vs Recall
+  
+  p2 <- model_metrics_tbl %>%
+    ggplot(aes(recall, precision, color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size) +
+    theme_new +
+    labs(title = "Precision Vs Recall", x = "Recall", y = "Precision") +
+    theme(legend.position = "none") 
+  
+  
+  # 2. Gain / Lift
+  
+  get_gain_lift <- function(model_id, test_tbl) {
+    
+    model_h2o <- h2o.getModel(model_id)
+    perf_h2o  <- h2o.performance(model_h2o, newdata = as.h2o(test_tbl)) 
+    
+    perf_h2o %>%
+      h2o.gainsLift() %>%
+      as.tibble() %>%
+      select(group, cumulative_data_fraction, cumulative_capture_rate, cumulative_lift)
+    
+  }
+  
+  gain_lift_tbl <- leaderboard_tbl %>%
+    mutate(metrics = map(model_id, get_gain_lift, newdata_tbl)) %>%
+    unnest(cols = metrics) %>%
+    mutate(
+      model_id = as_factor(model_id) %>% 
+        fct_reorder(!! order_by_expr, 
+                    .desc = ifelse(order_by == "auc", TRUE, FALSE)),
+      auc  = auc %>% 
+        round(3) %>% 
+        as.character() %>% 
+        as_factor() %>% 
+        fct_reorder(as.numeric(model_id)),
+      logloss = logloss %>% 
+        round(4) %>% 
+        as.character() %>% 
+        as_factor() %>% 
+        fct_reorder(as.numeric(model_id))
+    ) %>%
+    rename(
+      gain = cumulative_capture_rate,
+      lift = cumulative_lift
+    ) 
+  
+  # 2A. Gain Plot
+  
+  p3 <- gain_lift_tbl %>%
+    ggplot(aes(cumulative_data_fraction, gain, 
+               color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size,) +
+    geom_segment(x = 0, y = 0, xend = 1, yend = 1, 
+                 color = "red", size = size, linetype = "dotted") +
+    theme_new +
+    expand_limits(x = c(0, 1), y = c(0, 1)) +
+    labs(title = "Gain",
+         x = "Cumulative Data Fraction", y = "Gain") +
+    theme(legend.position = "none")
+  
+  # 2B. Lift Plot
+  
+  p4 <- gain_lift_tbl %>%
+    ggplot(aes(cumulative_data_fraction, lift, 
+               color = model_id, linetype = !! order_by_expr)) +
+    geom_line(size = size) +
+    geom_segment(x = 0, y = 1, xend = 1, yend = 1, 
+                 color = "red", size = size, linetype = "dotted") +
+    theme_new +
+    expand_limits(x = c(0, 1), y = c(0, 1)) +
+    labs(title = "Lift",
+         x = "Cumulative Data Fraction", y = "Lift") +
+    theme(legend.position = "none") 
+  
+  
+  # Combine using cowplot
+  
+  # cowplot::get_legend extracts a legend from a ggplot object
+  p_legend <- get_legend(p1)
+  # Remove legend from p1
+  p1 <- p1 + theme(legend.position = "none")
+  
+  # cowplot::plt_grid() combines multiple ggplots into a single cowplot object
+  p <- cowplot::plot_grid(p1, p2, p3, p4, ncol = 2)
+  
+  # cowplot::ggdraw() sets up a drawing layer
+  p_title <- ggdraw() + 
+    
+    # cowplot::draw_label() draws text on a ggdraw layer / ggplot object
+    draw_label("H2O Model Metrics", size = 18, fontface = "bold", 
+               color = "#2C3E50")
+  
+  p_subtitle <- ggdraw() + 
+    draw_label(glue("Ordered by {toupper(order_by)}"), size = 10,  
+               color = "#2C3E50")
+  
+  # Combine everything
+  ret <- plot_grid(p_title, p_subtitle, p, p_legend, 
+                   
+                   # Adjust the relative spacing, so that the legends always fits
+                   ncol = 1, rel_heights = c(0.05, 0.05, 1, 0.05 * max_models))
+  
+  h2o.show_progress()
+  
+  return(ret)
+  
+}
+
+automl_models_h2o@leaderboard %>%
+  plot_h2o_performance(newdata = test_tbl, order_by = "logloss", 
+                       size = 0.5, max_models = 4)
+
+
+```
+
+## Business case
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(rsample)
+library(recipes)
+library(h2o)
+library(yardstick)
+library(broom)
+library(broom.mixed)
+
+h2o.init()
+automl_models_h2o@leaderboard %>% 
+              as_tibble() %>% 
+              select(-c(mean_per_class_error, rmse, mse))
+
+
+# Visualize the H2O leaderboard to help with model selection
+data_transformed_tbl <- automl_models_h2o@leaderboard %>%
+        as_tibble() %>%
+        select(-c(aucpr, mean_per_class_error, rmse, mse)) %>% 
+        mutate(model_type = str_extract(model_id, "[^_]+")) %>%
+        slice(1:15) %>% 
+        rownames_to_column(var = "rowname") %>%
+        # Visually this step will not change anything
+        # It reorders the factors under the hood
+        mutate(
+          model_id   = as_factor(model_id) %>% reorder(auc),
+          model_type = as.factor(model_type)
+          ) %>% 
+          pivot_longer(cols = -c(model_id, model_type, rowname), 
+                       names_to = "key", 
+                       values_to = "value", 
+                       names_transform = list(key = forcats::fct_inorder)
+                       ) %>% 
+        mutate(model_id = paste0(rowname, ". ", model_id) %>% as_factor() %>% fct_rev())
+
+data_transformed_tbl %>%
+        ggplot(aes(value, model_id, color = model_type)) +
+        geom_point(size = 3) +
+        geom_label(aes(label = round(value, 2), hjust = "inward")) +
+        
+        # Facet to break out logloss and auc
+        facet_wrap(~ key, scales = "free_x") +
+        labs(title = "Leaderboard Metrics",
+             subtitle = paste0("Ordered by: ", "auc"),
+             y = "Model Postion, Model ID", x = "") + 
+        theme(legend.position = "bottom")
+
+#Grid search
+
+deeplearning_h2o <- h2o.loadModel("model_ml/DeepLearning_grid_1_AutoML_41_20220328_03648_model_2")
+
+h2o.performance(deeplearning_h2o, newdata = as.h2o(test_tbl))
+
+deeplearning_grid_01 <- h2o.grid(
+
+    # See help page for available algos
+    algorithm = "deeplearning",
+    
+    # I just use the same as the object
+    grid_id = "deeplearning_grid_01",
+    
+    # The following is for ?h2o.deeplearning()
+    # predictor and response variables
+    x = x,
+    y = y,
+    
+    # training and validation frame and crossfold validation
+    training_frame   = train_h2o,
+    validation_frame = valid_h2o,
+    nfolds = 5,
+    
+    # Hyperparamters: Use deeplearning_h2o@allparameters to see all
+    hyper_params = list(
+        # Use some combinations (the first one was the original)
+        hidden = list(c(10, 10, 10), c(50, 20, 10), c(20, 20, 20)),
+        epochs = c(10, 50, 100)
+    )
+)
+
+h2o.getGrid(grid_id = "deeplearning_grid_01", sort_by = "auc", decreasing = TRUE)
+
+deeplearning_grid_01_model_1 <- h2o.getModel("deeplearning_grid_01_model_1")
+
+deeplearning_grid_01_model_1 %>% h2o.auc(train = T, valid = T, xval = T)
+##     train     valid      xval 
+## 0.9093134 0.7922078 0.8299115 
+
+# We can tell the model is overfitting because of the huge difference between training AUC and the validation / cross validation AUC
+
+# Run it on the test data
+deeplearning_grid_01_model_1 %>%
+    h2o.performance(newdata = as.h2o(test_tbl))
+
+# 4. Assessing Performance ----
+stacked_ensemble_h2o <- h2o.loadModel("model_ml/StackedEnsemble_AllModels_2_AutoML_41_20220328_03648")
+deeplearning_h2o     <- h2o.loadModel("model_ml/DeepLearning_grid_1_AutoML_41_20220328_03648_model_2")
+glm_h2o              <- h2o.loadModel("model_ml/GLM_1_AutoML_41_20220328_03648")
+
+performance_h2o <- h2o.performance(stacked_ensemble_h2o, newdata = as.h2o(test_tbl))
+
+typeof(performance_h2o)
+performance_h2o %>% slotNames()
+
+h2o.auc(performance_h2o, train = T, valid = T, xval = T)
+## [1] 0.8588763
+
+# Caution: "train, "val", and "xval" arugments only work for models (not performance objects)
+h2o.auc(stacked_ensemble_h2o, train = T, valid = T, xval = T)
+##     train     valid      xval 
+## 0.9892475 0.8219522 0.8383290 
+
+h2o.giniCoef(performance_h2o)
+## [1] 0.7177527
+h2o.logloss(performance_h2o)
+## [1] 0.2941769
+
+# result for the training data
+h2o.confusionMatrix(stacked_ensemble_h2o)
+
+#h2o.confusionMatrix(performance_h2o)
+
+
+
+
+```
